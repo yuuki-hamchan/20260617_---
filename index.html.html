@@ -6,6 +6,7 @@
 <title>勇者haMBの習慣冒険記</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparent 20%), radial-gradient(#1a0a3a 20%, transparent 20%);background-size:8px 8px;background-position:0 0, 4px 4px;display:flex;justify-content:center;padding:12px;min-height:100vh}
@@ -207,6 +208,12 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
 
 <div id="s-calendar" class="scr">
   <div class="panel">
+    <div class="ptl">週間ステータス（先週比較）</div>
+    <div style="position:relative; width:100%; max-width:320px; margin:0 auto; padding:5px 0;">
+      <canvas id="statusChart" style="display:block; width:100%; height:auto;"></canvas>
+    </div>
+  </div>
+  <div class="panel">
     <div class="cal-head">
       <button class="cnav" id="cprev">◀</button>
       <div class="cal-ttl" id="cal-ttl"></div>
@@ -281,7 +288,69 @@ const QUESTS=[
   {id:'language',name:'語学',icon:'🌍',color:'#c08020',
    subs:[{id:'italian',name:'イタリア語',icon:'🇮🇹',fields:[{k:'min',l:'時間分'},{k:'pages',l:'ページ'},{k:'words',l:'単語数'}]}]},
   {id:'nodrink',name:'禁酒',icon:'🚫',color:'#20a080',special:'nodrink',subs:[]},
+  {id:'work',name:'仕事',icon:'💼',color:'#70a0f0',
+   subs:[
+     {id:'main',name:'本業タスク',icon:'💻',fields:[{k:'count',l:'タスク数'},{k:'time',l:'時間分'}]},
+     {id:'sub',name:'副業・創作',icon:'📝',fields:[{k:'time',l:'時間分'}]},
+     {id:'arrange',name:'整理・メール',icon:'📁',fields:[{k:'count',l:'処理数'}]},
+   ]},
+  {id:'life',name:'生活',icon:'🏠',color:'#80c080',
+   subs:[
+     {id:'clean',name:'掃除・洗濯',icon:'🧹',fields:[{k:'min',l:'時間分'}]},
+     {id:'cook',name:'料理・自炊',icon:'🍳',fields:[{k:'count',l:'回数'}]},
+     {id:'morning',name:'早起き・朝活',icon:'🌅',fields:[{k:'time',l:'起床時間'}]},
+   ]},
+  {id:'hobby',name:'趣味',icon:'🎮',color:'#e08080',
+   subs:[
+     {id:'create',name:'創作・開発',icon:'🎨',fields:[{k:'min',l:'時間分'}]},
+     {id:'game',name:'ゲーム・読書',icon:'🕹️',fields:[{k:'min',l:'時間分'}]},
+     {id:'movie',name:'映画・アニメ',icon:'🎬',fields:[{k:'count',l:'本数'}]},
+   ]},
+  {id:'family',name:'家族',icon:'👪',color:'#f0a060',
+   subs:[
+     {id:'housework',name:'家事手伝い',icon:'🧺',fields:[{k:'min',l:'時間分'}]},
+     {id:'service',name:'家族サービス',icon:'🎁',fields:[{k:'min',l:'時間分'}]},
+     {id:'contact',name:'連絡・団らん',icon:'📞',fields:[{k:'min',l:'時間分'}]},
+   ]},
+  {id:'virtue',name:'徳',icon:'✨',color:'#e0c040',
+   subs:[
+     {id:'kind',name:'一日一善',icon:'🤝',fields:[{k:'content',l:'内容'}]},
+     {id:'cleanup',name:'ゴミ拾い・片付',icon:'🚮',fields:[{k:'count',l:'回数'}]},
+     {id:'thanks',name:'感謝の言葉',icon:'🙏',fields:[{k:'count',l:'回数'}]},
+   ]},
+  {id:'beauty',name:'美',icon:'💄',color:'#d060a0',
+   subs:[
+     {id:'skin',name:'スキンケア',icon:'🧴',fields:[{k:'min',l:'時間分'}]},
+     {id:'hair',name:'ヘアケア',icon:'💈',fields:[{k:'min',l:'時間分'}]},
+     {id:'fashion',name:'身だしなみ',icon:'👔',fields:[{k:'min',l:'時間分'}]},
+   ]},
 ];
+
+const STATS_BASE = {
+  'シゴト': 70,
+  'セイカツ': 37,
+  'シュミ': 28,
+  'カゾク': 8,
+  'カンセイ／チシキ': 60,
+  'トク': 56,
+  'ビ': 13,
+  'ケンコウ': 18
+};
+
+const STATS_MAP = {
+  'publish': 'シゴト',
+  'work': 'シゴト',
+  'life': 'セイカツ',
+  'hobby': 'シュミ',
+  'family': 'カゾク',
+  'reading': 'カンセイ／チシキ',
+  'study': 'カンセイ／チシキ',
+  'language': 'カンセイ／チシキ',
+  'virtue': 'トク',
+  'beauty': 'ビ',
+  'exercise': 'ケンコウ',
+  'nodrink': 'ケンコウ'
+};
 
 const KEY='rpgYuuki_v5';
 let D;try{D=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){D={};}
@@ -309,6 +378,18 @@ let calQ=QUESTS[0].id;
 let activeQ=null;
 let msgT=null;
 
+let hasInteracted = false;
+const initAudio = () => {
+  if (hasInteracted) return;
+  hasInteracted = true;
+  Sound.init();
+  if (Sound.ctx && Sound.ctx.state === 'suspended') {
+    Sound.ctx.resume().catch(() => {});
+  }
+};
+window.addEventListener('click', initAudio, { once: true });
+window.addEventListener('touchstart', initAudio, { once: true });
+
 // 効果音クラス
 class Sound {
   static ctx = null;
@@ -316,17 +397,23 @@ class Sound {
 
   static init() {
     if (!this.ctx) {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      try {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch(e) {
+        console.warn('Web Audio API not supported');
+      }
       this.muted = localStorage.getItem('rpgYuuki_muted') === 'true';
     }
   }
 
   static play(type) {
+    if (!hasInteracted) return; // ユーザー操作があるまでは音を鳴らさない
     this.init();
     if (this.muted) return;
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
     }
+    if (!this.ctx) return;
     const t = this.ctx.currentTime;
     
     switch(type) {
@@ -483,7 +570,7 @@ function sw(t){
   document.getElementById('s-'+t).classList.add('active');
   const idx={today:0,calendar:1,goals:2,boss:3}[t];
   document.querySelectorAll('.tb')[idx].classList.add('active');
-  if(t==='calendar'){renderCal();renderCalStats();}
+  if(t==='calendar'){renderCal();renderCalStats();renderStatusChart();}
   if(t==='goals')renderGoalInputs();
   if(t==='boss')renderBoss();
 }
@@ -844,6 +931,154 @@ function saveBoss(){
 
 document.getElementById('cprev').onclick=()=>{Sound.play('select');calView.setMonth(calView.getMonth()-1);renderCal();};
 document.getElementById('cnext').onclick=()=>{Sound.play('select');calView.setMonth(calView.getMonth()+1);renderCal();};
+
+// --- レーダーチャート用ロジック ---
+function getCumulativeCountBefore(targetQid, beforeDateStr) {
+  let c = 0;
+  if (targetQid === 'nodrink') {
+    Object.entries(D.nodrink).forEach(([day, val]) => {
+      if (val === 'yes' && day < beforeDateStr) {
+        c++;
+      }
+    });
+  } else {
+    Object.entries(D.subRec).forEach(([day, rec]) => {
+      if (day < beforeDateStr) {
+        const qr = rec[targetQid];
+        if (qr) {
+          Object.values(qr).forEach(s => {
+            if (s && s._done) c++;
+          });
+        }
+      }
+    });
+  }
+  return c;
+}
+
+function getCumulativeCountAll(targetQid) {
+  let c = 0;
+  if (targetQid === 'nodrink') {
+    Object.values(D.nodrink).forEach(val => {
+      if (val === 'yes') c++;
+    });
+  } else {
+    Object.values(D.subRec).forEach(rec => {
+      const qr = rec[targetQid];
+      if (qr) {
+        Object.values(qr).forEach(s => {
+          if (s && s._done) c++;
+        });
+      }
+    });
+  }
+  return c;
+}
+
+function getStatusValue(statusName, type) {
+  // 今週の日曜日を取得
+  const today = new Date(TODAY);
+  const sun = new Date(today);
+  sun.setDate(today.getDate() - today.getDay());
+  const sunStr = dk(sun); // YYYY-MM-DD
+  
+  const base = STATS_BASE[statusName] || 0;
+  let count = 0;
+  
+  Object.entries(STATS_MAP).forEach(([qid, statName]) => {
+    if (statName === statusName) {
+      if (type === 'lastWeek') {
+        count += getCumulativeCountBefore(qid, sunStr);
+      } else {
+        count += getCumulativeCountAll(qid);
+      }
+    }
+  });
+  
+  return base + count;
+}
+
+let statusChartInstance = null;
+function renderStatusChart() {
+  const canvas = document.getElementById('statusChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  const labels = Object.keys(STATS_BASE);
+  const lastWeekData = labels.map(label => getStatusValue(label, 'lastWeek'));
+  const thisWeekData = labels.map(label => getStatusValue(label, 'thisWeek'));
+  
+  if (statusChartInstance) {
+    statusChartInstance.destroy();
+  }
+  
+  statusChartInstance = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '前週のステータス',
+          data: lastWeekData,
+          backgroundColor: 'rgba(64, 128, 240, 0.25)',
+          borderColor: '#4080f0',
+          borderWidth: 2,
+          pointBackgroundColor: '#4080f0',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#4080f0'
+        },
+        {
+          label: '今週のステータス',
+          data: thisWeekData,
+          backgroundColor: 'rgba(240, 192, 64, 0.35)',
+          borderColor: '#f0c040',
+          borderWidth: 2,
+          pointBackgroundColor: '#f0c040',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#f0c040'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          angleLines: {
+            color: 'rgba(74, 58, 106, 0.8)'
+          },
+          grid: {
+            color: 'rgba(74, 58, 106, 0.8)'
+          },
+          pointLabels: {
+            color: '#f0e6c8',
+            font: {
+              family: "'DotGothic16', monospace",
+              size: 10
+            }
+          },
+          ticks: {
+            display: false,
+            stepSize: 10
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#f0e6c8',
+            font: {
+              family: "'DotGothic16', monospace",
+              size: 10
+            }
+          }
+        }
+      }
+    }
+  });
+}
 
 renderHero();renderGrid();renderSummary();
 updateMuteButton();
