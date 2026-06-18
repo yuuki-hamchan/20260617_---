@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>勇者haMBの習慣冒険記</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparent 20%), radial-gradient(#1a0a3a 20%, transparent 20%);background-size:8px 8px;background-position:0 0, 4px 4px;display:flex;justify-content:center;padding:12px;min-height:100vh}
+.rpg{font-family:'DotGothic16',monospace;background:#140727;color:#f0e6c8;padding:8px;width:100%;max-width:540px;font-size:14px;box-shadow:0 0 20px rgba(0,0,0,0.8)}
+.rb{border:4px double #8b6914;outline:2px solid #f0c040;padding:7px;background:#090215;position:relative}
+.ttl-area{display:flex;justify-content:space-between;align-items:center;background:#1a0a2e;border-bottom:2px solid #8b6914;padding:3px 8px;margin-bottom:7px}
+.ttl{font-size:12px;color:#f0c040;letter-spacing:2px;font-weight:bold}
+.mute-btn{background:#0d0520;border:1px solid #8b6914;color:#f0c040;font-family:'DotGothic16',monospace;font-size:10px;cursor:pointer;padding:2px 6px}
+.mute-btn.active{background:#8b6914;color:#0d0520}
+.tabs{display:flex;border:2px solid #8b6914;margin-bottom:7px;background:#0d0520}
+.tb{flex:1;padding:8px 1px;background:transparent;border:none;color:#6a5a4a;font-family:'DotGothic16',monospace;font-size:11px;cursor:pointer;border-right:1px solid #4a3a6a;position:relative;outline:none}
+.tb:last-child{border-right:none}
+.tb:hover{color:#f0e6c8}
+.tb:hover::before{content:"▶";position:absolute;left:2px;color:#f0c040;font-size:9px}
+.tb.active{background:#2a1a3e;color:#f0c040}
+.tb.active::before{content:"👉";position:absolute;left:1px;font-size:10px}
+.scr{display:none}.scr.active{display:block}
+.panel{background:#080212;border:2px solid #8b6914;padding:7px;margin-bottom:7px;box-shadow:inset 0 0 10px rgba(0,0,0,0.8)}
+.ptl{color:#f0c040;font-size:11px;letter-spacing:1px;margin-bottom:5px;border-bottom:1px solid #4a3a6a;padding-bottom:3px;display:flex;align-items:center}
+.ptl::before{content:"▼ ";color:#8b6914;margin-right:2px}
+.hero-layout{display:flex;gap:10px;margin-bottom:6px}
+.hero-img-box{width:76px;height:76px;border:2px solid #8b6914;background:#0d0520;padding:2px;display:flex;align-items:center;justify-content:center;image-rendering:pixelated}
+.hero-img{width:100%;height:100%;object-fit:contain}
+.hero-stats{flex:1;display:flex;flex-direction:column;gap:3px}
+.hero-name-row{display:flex;justify-content:space-between;align-items:baseline}
+.hero-name{font-size:14px;color:#f0c040;font-weight:bold}
+.hero-lv{font-size:11px;color:#a0c8f0}
+.flavor-stats{display:flex;gap:8px;font-size:9px;color:#8a7a6a;margin-top:2px}
+.fs-val{color:#f0e6c8}
+.srow{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.slbl{font-size:9px;width:24px;color:#a0c8f0;font-weight:bold}
+.bbg{flex:1;height:12px;background:#1a0a2e;border:1px solid #4a3a6a;padding:1px;position:relative}
+.bf{height:100%;transition:width .3s}
+.bhp{background:linear-gradient(to right, #a02020, #e04040)}
+.bmp{background:linear-gradient(to right, #2040a0, #4080f0)}
+.bex{background:linear-gradient(to right, #a08020, #f0c040)}
+.sval{font-size:9px;min-width:32px;text-align:right}
+.ri{background:#1a0a2e;border:1px solid #8b6914;color:#f0e6c8;font-family:'DotGothic16',monospace;font-size:13px;padding:4px 5px;width:58px;text-align:center}
+.ri:focus{outline:2px solid #f0c040}
+.rbtn{background:#2a1a3e;border:2px solid #8b6914;color:#f0c040;font-family:'DotGothic16',monospace;font-size:11px;cursor:pointer;padding:6px 10px;position:relative}
+.rbtn:hover{background:#3a2a4e;color:#fff}
+.rbtn:hover::before{content:"▶";position:absolute;left:2px;font-size:8px;top:50%;transform:translateY(-50%)}
+.rbtn.ok{border-color:#40a000;color:#80d040}
+.rbtn.ok:hover{background:#1e3d0c}
+.rbtn.cl{border-color:#802020;color:#d04040;margin-left:5px}
+.rbtn.cl:hover{background:#3d0c0c}
+.lock-banner{background:#3a0a0a;border:2px solid #802020;color:#d04040;font-size:10px;padding:6px;margin-bottom:6px;text-align:center;font-weight:bold}
+.qgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.qcard{background:#0d0520;border:2px solid #4a3a6a;padding:8px 6px;cursor:pointer;text-align:center;position:relative;transition:all 0.2s}
+.qcard:hover{border-color:#f0c040;background:#150a2e}
+.qcard:hover::after{content:"👉";position:absolute;top:2px;left:2px;font-size:10px}
+.qcard.hasdone{border-color:#f0c040;background:linear-gradient(135deg, #1a1200 0%, #0d0520 100%)}
+.qcard.exq{border-color:#d04080}
+.qcard.locked{opacity:.35;cursor:not-allowed}
+.qcard.locked:hover::after{display:none}
+.qi{font-size:24px;margin-bottom:2px}
+.qn{font-size:15px;color:#f0e6c8;letter-spacing:1px;font-weight:bold}
+.qdone{font-size:9px;color:#80d040;margin-top:3px;word-break:break-all}
+.qst{font-size:9px;padding:2px 4px;display:inline-block;margin-top:4px}
+.sdone{background:#2a4a00;color:#80d040;border:1px solid #40a000}
+.snot{background:#2a0a0a;color:#a04040;border:1px solid #602020}
+.qlk{font-size:9px;color:#a04040;margin-top:3px}
+.modal-bg{background:#0a0518;border:3px double #f0c040;outline:2px solid #8b6914;padding:8px;margin-bottom:7px;box-shadow:0 0 15px rgba(0,0,0,0.9)}
+.mttl{color:#f0c040;font-size:13px;margin-bottom:6px;text-align:center;border-bottom:1px solid #4a3a6a;padding-bottom:3px;letter-spacing:1px}
+.si{display:flex;align-items:flex-start;gap:5px;margin-bottom:5px;padding:5px;border:1px solid #4a3a6a;background:#090215;transition:border-color 0.2s}
+.si:hover{border-color:#8b6914}
+.si.done{border-color:#f0c040;background:#1a1200}
+.sck{width:16px;height:16px;border:2px solid #8b6914;background:#1a0a2e;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;color:#f0c040;flex-shrink:0;margin-top:1px}
+.sck.done{background:#2a4a00;border-color:#40a000}
+.sname{font-size:12px;color:#a0c8f0;margin-bottom:2px;font-weight:bold}
+.exmp{font-size:8px;color:#d04080;margin-bottom:3px}
+.fields{display:flex;gap:4px;flex-wrap:wrap}
+.fld{display:flex;flex-direction:column;align-items:center;gap:1px}
+.fld label{font-size:8px;color:#6a5a4a}
+.ybtn{flex:1;padding:8px;border:2px solid;font-family:'DotGothic16',monospace;font-size:12px;cursor:pointer;position:relative}
+.ybtn:hover::before{content:"👉";position:absolute;left:4px;font-size:10px}
+.ybtn.yes{background:#1a3010;border-color:#40a000;color:#80d040}
+.ybtn.no{background:#3a0a0a;border-color:#802020;color:#d04040}
+.ybtn.sel{outline:3px solid #f0c040}
+.rec-row{font-size:9px;color:#6a5a4a;margin-bottom:3px;padding:3px;border-bottom:1px solid #1a0a3a;word-break:break-all}
+.rv{color:#a0c8f0}
+.msg-box{background:#000;border:4px double #8b6914;outline:2px solid #f0c040;padding:7px;font-size:11px;color:#f0e6c8;min-height:45px;line-height:1.6;position:relative}
+.msg-box::before{content:"";position:absolute;top:3px;left:3px;right:3px;bottom:3px;border:1px solid #3a2a1a;pointer-events:none}
+.cur{display:inline-block;width:7px;height:10px;background:#f0e6c8;animation:bl .7s infinite;margin-left:3px;vertical-align:middle}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.cal-ttl{color:#f0c040;font-size:11px}
+.cnav{background:#1a0a2e;border:1px solid #8b6914;color:#f0c040;font-family:'DotGothic16',monospace;font-size:11px;cursor:pointer;padding:2px 7px}
+.cnav:hover{background:#2a1a3e}
+.ctabs{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}
+.ctab{background:#1a0a2e;border:1px solid #4a3a6a;color:#a0c8f0;font-family:'DotGothic16',monospace;font-size:10px;cursor:pointer;padding:3px 5px}
+.ctab.active{background:#f0c040;color:#1a0a2e;border-color:#f0c040}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:9px;color:#4a3a6a;margin-bottom:2px}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cd{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;color:#4a3a6a;border:1px solid transparent;line-height:1.15;padding:1px 0}
+.c-num{font-size:9px;font-weight:bold}
+.c-status{font-size:7px;transform:scale(0.85);margin-top:1px;white-space:nowrap;display:inline-block}
+.cd.today{color:#f0e6c8;border-color:#f0c040}
+.cd.c1{background:#1a3010;color:#60a030}
+.cd.c2{background:#2a5020;color:#80c040}
+.cd.c3{background:#3a7030;color:#a0d060}
+.cd.call{background:#f0c040;color:#1a0a2e}
+.cd.abs-yes{background:#1a2a4a;color:#6090d0}
+.cd.abs-no{background:#3a0a0a;color:#a04040}
+.gr{display:flex;align-items:center;gap:5px;margin-bottom:6px;flex-wrap:wrap}
+.glbl{font-size:12px;color:#a0c8f0;width:60px;font-weight:bold}
+.gunit{font-size:9px;color:#6a5a4a}
+.gprog{font-size:9px;color:#f0c040;margin-left:auto}
+.rulehint{font-size:9px;color:#5a7a3a;margin-top:5px;padding:4px;border:1px solid #2a4a1a;background:#0a1a05}
+.boss-card{border:2px solid #8b6914;background:#0d0520;padding:6px;margin-bottom:8px;display:flex;gap:10px}
+.boss-img-box{width:76px;height:76px;border:1px solid #802020;background:#1a0505;display:flex;align-items:center;justify-content:center;image-rendering:pixelated;flex-shrink:0}
+.boss-img{width:100%;height:100%;object-fit:contain;transition:filter 0.5s}
+.boss-img.defeated{filter:grayscale(100%) brightness(40%);opacity:0.6}
+.boss-info{flex:1;display:flex;flex-direction:column;justify-content:center}
+.boss-name{color:#e04040;font-size:12px;font-weight:bold;margin-bottom:3px}
+.boss-hp-bg{height:10px;background:#3a0a0a;border:1px solid #802020;position:relative;margin-bottom:3px}
+.boss-hp-bar{height:100%;background:linear-gradient(to right, #801010, #e04040);transition:width 0.5s}
+.boss-hp-txt{display:flex;justify-content:space-between;font-size:8px;color:#e04040}
+.boss-meta{font-size:8px;color:#6a5a4a;margin-top:2px}
+@media (max-width:420px){
+.tb{font-size:8px;padding:7px 1px}
+.tb:hover::before, .tb.active::before{display:none}
+.qi{font-size:20px}
+.qn{font-size:13px}
+.hero-img-box{width:64px;height:64px}
+.boss-img-box{width:64px;height:64px}
+}
+</style>
+</head>
+<body>
+<div class="rpg"><div class="rb">
+<div class="ttl-area">
+  <div class="ttl">★ 勇者 haMB の冒険記録 ★</div>
+  <button class="mute-btn" id="mute-btn" onclick="toggleMute()">🔊 音ON</button>
+</div>
+
+<div class="tabs">
+  <button class="tb active" onclick="sw('today')">今日</button>
+  <button class="tb" onclick="sw('calendar')">記録</button>
+  <button class="tb" onclick="sw('goals')">目標</button>
+  <button class="tb" onclick="sw('boss')">BOSS</button>
+</div>
+
+<div id="s-today" class="scr active">
+  <div class="panel">
+    <div class="ptl">ステータス（毎朝入力）</div>
+    <div class="hero-layout">
+      <div class="hero-img-box">
+        <img class="hero-img" id="hero-avatar" src="hamちゃん勇者.png" alt="勇者">
+      </div>
+      <div class="hero-stats">
+        <div class="hero-name-row">
+          <span class="hero-name">haMB</span>
+          <span class="hero-lv" id="hero-lv">LV. 1</span>
+        </div>
+        <div class="srow">
+          <div class="slbl">HP</div>
+          <div class="bbg"><div class="bf bhp" id="b-hp" style="width:80%"></div></div>
+          <div class="sval" id="t-hp">80</div>
+        </div>
+        <div class="srow">
+          <div class="slbl">MP</div>
+          <div class="bbg"><div class="bf bmp" id="b-mp" style="width:60%"></div></div>
+          <div class="sval" id="t-mp">60</div>
+        </div>
+        <div class="srow">
+          <div class="slbl">EXP</div>
+          <div class="bbg"><div class="bf bex" id="b-exp" style="width:0%"></div></div>
+          <div class="sval" id="t-exp">0/5</div>
+        </div>
+        <div class="flavor-stats">
+          <span>ちから:<span class="fs-val" id="fs-str">10</span></span>
+          <span>まもり:<span class="fs-val" id="fs-def">8</span></span>
+          <span>すばやさ:<span class="fs-val" id="fs-agi">12</span></span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap">
+      <input class="ri" type="number" id="i-hp" placeholder="HP" min="0" max="100">
+      <input class="ri" type="number" id="i-mp" placeholder="MP" min="0" max="100">
+      <button class="rbtn ok" onclick="setStatus()">朝の記録</button>
+    </div>
+    <div class="rulehint">MPが30未満だと運動以外ロック。運動するとMP回復＋HP消費</div>
+  </div>
+
+  <div id="lock-area"></div>
+  <div id="modal-area"></div>
+
+  <div class="panel">
+    <div class="ptl">▼ 本日のクエスト</div>
+    <div class="qgrid" id="qgrid"></div>
+  </div>
+
+  <div class="panel">
+    <div class="ptl">▼ 本日の記録</div>
+    <div id="rec-list"><div style="font-size:9px;color:#4a3a6a">クエストをこなして記録しよう</div></div>
+  </div>
+</div>
+
+<div id="s-calendar" class="scr">
+  <div class="panel">
+    <div class="cal-head">
+      <button class="cnav" id="cprev">◀</button>
+      <div class="cal-ttl" id="cal-ttl"></div>
+      <button class="cnav" id="cnext">▶</button>
+    </div>
+    <div class="ctabs" id="ctabs"></div>
+    <div class="dow"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
+    <div class="cgrid" id="cgrid"></div>
+  </div>
+  <div class="panel">
+    <div class="ptl" id="cal-stats-ttl">▼ 禁酒記録</div>
+    <div id="abs-stats" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+</div>
+
+<div id="s-goals" class="scr">
+  <div class="panel">
+    <div class="ptl">▼ 今週の目標</div>
+    <div id="wk-inp"></div>
+    <button class="rbtn ok" onclick="saveWk()">▶ 今週の目標を決定</button>
+  </div>
+  <div class="panel">
+    <div class="ptl">▼ 今月の目標</div>
+    <div id="mo-inp"></div>
+    <button class="rbtn ok" onclick="saveMo()">▶ 今月の目標を決定</button>
+  </div>
+</div>
+
+<div id="s-boss" class="scr">
+  <div class="panel">
+    <div class="ptl">▼ 年間BOSS設定</div>
+    <div id="boss-inp"></div>
+    <button class="rbtn ok" onclick="saveBoss()">▶ BOSSを設定</button>
+  </div>
+  <div class="panel">
+    <div class="ptl">▼ 討伐状況</div>
+    <div id="boss-status"></div>
+  </div>
+</div>
+
+<div class="msg-box"><span id="msg-txt"></span><span class="cur"></span></div>
+</div></div>
+
+<script>
+const MP_THRESHOLD=30;
+const QUESTS=[
+  {id:'publish',name:'発信',icon:'📣',color:'#60a030',
+   subs:[
+     {id:'note',name:'note',icon:'📝',fields:[{k:'words',l:'文字数'},{k:'time',l:'時間分'}]},
+     {id:'standfm',name:'stand.fm',icon:'🎙',fields:[{k:'time',l:'収録分'}]},
+     {id:'x',name:'X',icon:'✖',fields:[{k:'count',l:'投稿数'}]},
+     {id:'insta',name:'Instagram',icon:'📷',fields:[{k:'count',l:'投稿数'}]},
+   ]},
+  {id:'exercise',name:'運動',icon:'⚔',color:'#d04080',special:'exercise',
+   subs:[
+     {id:'run',name:'ランニング',icon:'🏃',mp:20,hp:-5,fields:[{k:'km',l:'距離km'},{k:'min',l:'時間分'}]},
+     {id:'abs',name:'腹筋運動',icon:'💪',mp:10,hp:-3,fields:[{k:'sets',l:'セット'},{k:'min',l:'時間分'}]},
+     {id:'core',name:'体幹運動',icon:'🧘',mp:10,hp:-3,fields:[{k:'sets',l:'セット'},{k:'min',l:'時間分'}]},
+     {id:'other',name:'その他',icon:'🏋',mp:15,hp:-4,fields:[{k:'content',l:'内容'},{k:'min',l:'時間分'}]},
+   ]},
+  {id:'reading',name:'読書',icon:'📖',color:'#4080f0',
+   subs:[
+     {id:'book',name:'書籍',icon:'📚',fields:[{k:'pages',l:'ページ'},{k:'chapter',l:'章'}]},
+     {id:'ebook',name:'電子書籍',icon:'📱',fields:[{k:'pages',l:'ページ'},{k:'chapter',l:'章'}]},
+     {id:'audio',name:'音声読書',icon:'🎧',fields:[{k:'min',l:'時間分'}]},
+   ]},
+  {id:'study',name:'学習',icon:'🔮',color:'#8060d0',
+   subs:[
+     {id:'offline',name:'オフライン',icon:'📓',fields:[{k:'pages',l:'ページ'},{k:'chapter',l:'章'}]},
+     {id:'online',name:'オンライン',icon:'💻',fields:[{k:'min',l:'時間分'}]},
+   ]},
+  {id:'language',name:'語学',icon:'🌍',color:'#c08020',
+   subs:[{id:'italian',name:'イタリア語',icon:'🇮🇹',fields:[{k:'min',l:'時間分'},{k:'pages',l:'ページ'},{k:'words',l:'単語数'}]}]},
+  {id:'nodrink',name:'禁酒',icon:'🚫',color:'#20a080',special:'nodrink',subs:[]},
+];
+
+const KEY='rpgYuuki_v5';
+let D;try{D=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){D={};}
+if(!D.status)D.status={};
+if(!D.wk)D.wk={};
+if(!D.mo)D.mo={};
+if(!D.boss)D.boss=[];
+if(!D.nodrink)D.nodrink={};
+if(!D.subRec)D.subRec={};
+function sv(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}}
+
+function getLocalDateString(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+const TODAY=new Date();
+const TDK=getLocalDateString(TODAY);
+if(!D.subRec[TDK])D.subRec[TDK]={};
+if(!D.status[TDK])D.status[TDK]={hp:80,mp:60};
+
+let calView=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);
+let calQ=QUESTS[0].id;
+let activeQ=null;
+let msgT=null;
+
+// 効果音クラス
+class Sound {
+  static ctx = null;
+  static muted = false;
+
+  static init() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.muted = localStorage.getItem('rpgYuuki_muted') === 'true';
+    }
+  }
+
+  static play(type) {
+    this.init();
+    if (this.muted) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+    const t = this.ctx.currentTime;
+    
+    switch(type) {
+      case 'select': {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, t);
+        osc.frequency.exponentialRampToValueAtTime(1200, t + 0.05);
+        gain.gain.setValueAtTime(0.015, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.05);
+        break;
+      }
+      case 'confirm': {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(600, t);
+        osc.frequency.setValueAtTime(900, t + 0.06);
+        osc.frequency.setValueAtTime(1200, t + 0.12);
+        gain.gain.setValueAtTime(0.015, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.18);
+        break;
+      }
+      case 'cancel': {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(350, t);
+        osc.frequency.setValueAtTime(250, t + 0.08);
+        gain.gain.setValueAtTime(0.02, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.15);
+        break;
+      }
+      case 'damage': {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, t);
+        osc.frequency.exponentialRampToValueAtTime(50, t + 0.15);
+        gain.gain.setValueAtTime(0.03, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.15);
+        break;
+      }
+      case 'heal': {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t + idx * 0.05);
+          gain.gain.setValueAtTime(0.015, t + idx * 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.05 + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t + idx * 0.05);
+          osc.stop(t + idx * 0.05 + 0.12);
+        });
+        break;
+      }
+      case 'levelUp': {
+        const notes = [523.25, 659.25, 783.99, 523.25, 783.99, 1046.50];
+        const durs = [0.1, 0.1, 0.1, 0.08, 0.08, 0.4];
+        let cur = 0;
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, t + cur);
+          gain.gain.setValueAtTime(0.015, t + cur);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + cur + durs[idx]);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t + cur);
+          osc.stop(t + cur + durs[idx]);
+          cur += durs[idx] * 0.8;
+        });
+        break;
+      }
+      case 'talk': {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(700, t);
+        gain.gain.setValueAtTime(0.005, t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.03);
+        break;
+      }
+    }
+  }
+}
+
+function toggleMute() {
+  Sound.init();
+  Sound.muted = !Sound.muted;
+  localStorage.setItem('rpgYuuki_muted', Sound.muted);
+  updateMuteButton();
+  if (!Sound.muted) {
+    Sound.play('select');
+  }
+}
+
+function updateMuteButton() {
+  const btn = document.getElementById('mute-btn');
+  if (btn) {
+    if (Sound.muted) {
+      btn.textContent = '🔇 音OFF';
+      btn.classList.add('active');
+    } else {
+      btn.textContent = '🔊 音ON';
+      btn.classList.remove('active');
+    }
+  }
+}
+
+function dk(d){return getLocalDateString(d);}
+function clamp(v){return Math.min(100,Math.max(0,Math.round(v)));}
+function showMsg(t){
+  const el=document.getElementById('msg-txt');el.textContent='';let i=0;
+  if(msgT)clearInterval(msgT);
+  msgT=setInterval(()=>{
+    if(i<t.length) {
+      el.textContent+=t[i++];
+      if(i % 2 === 0) Sound.play('talk');
+    } else {
+      clearInterval(msgT);
+    }
+  },50);
+}
+function sw(t){
+  Sound.play('select');
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s-'+t).classList.add('active');
+  const idx={today:0,calendar:1,goals:2,boss:3}[t];
+  document.querySelectorAll('.tb')[idx].classList.add('active');
+  if(t==='calendar'){renderCal();renderCalStats();}
+  if(t==='goals')renderGoalInputs();
+  if(t==='boss')renderBoss();
+}
+
+function getLevel(){
+  const tot=QUESTS.filter(q=>q.special!=='nodrink').reduce((s,q)=>{
+    return s+Object.keys(D.subRec).filter(day=>{
+      const r=D.subRec[day][q.id];
+      return r&&Object.values(r).some(x=>x&&x._done);
+    }).length;
+  },0)+Object.values(D.nodrink).filter(v=>v==='yes').length;
+  const lv=1+Math.floor(tot/5);
+  return{lv,exp:tot%5,toNext:5-(tot%5),tot};
+}
+function isLocked(){return(D.status[TDK]||{mp:60}).mp<MP_THRESHOLD;}
+function questDone(qid){
+  if(qid==='nodrink')return D.nodrink[TDK]==='yes';
+  const r=D.subRec[TDK][qid];
+  return r&&Object.values(r).some(s=>s&&s._done);
+}
+function subDoneNames(qid){
+  const r=D.subRec[TDK][qid];if(!r)return[];
+  const q=QUESTS.find(x=>x.id===qid);
+  return Object.entries(r).filter(([,v])=>v&&v._done).map(([k])=>{const s=q.subs.find(x=>x.id===k);return s?s.name:'';}).filter(Boolean);
+}
+
+function renderHero(){
+  const{lv,exp,toNext,tot}=getLevel();
+  const st=D.status[TDK]||{hp:80,mp:60};
+  document.getElementById('b-hp').style.width=st.hp+'%';
+  document.getElementById('t-hp').textContent=Math.round(st.hp);
+  document.getElementById('b-mp').style.width=st.mp+'%';
+  document.getElementById('t-mp').textContent=Math.round(st.mp);
+  document.getElementById('b-exp').style.width=Math.round(exp/5*100)+'%';
+  document.getElementById('t-exp').textContent=exp+'/5';
+  document.getElementById('lock-area').innerHTML=isLocked()?`<div class="lock-banner">⚠ MP不足！運動以外ロック中。運動でMPを回復しよう</div>`:'';
+  
+  // レベル表示の更新
+  document.getElementById('hero-lv').textContent='LV. ' + lv;
+  
+  // フレーバーステータスの更新
+  const str = 10 + lv * 3 + Math.floor(tot / 2);
+  const def = 8 + lv * 2 + Math.floor(tot / 3);
+  const agi = 12 + lv * 4 + Math.floor(tot / 4);
+  document.getElementById('fs-str').textContent = str;
+  document.getElementById('fs-def').textContent = def;
+  document.getElementById('fs-agi').textContent = agi;
+}
+function setStatus(){
+  Sound.play('confirm');
+  const hpv=parseInt(document.getElementById('i-hp').value);
+  const mpv=parseInt(document.getElementById('i-mp').value);
+  const st=D.status[TDK]||{hp:80,mp:60};
+  if(!isNaN(hpv))st.hp=clamp(hpv);
+  if(!isNaN(mpv))st.mp=clamp(mpv);
+  D.status[TDK]=st;sv();renderHero();renderGrid();
+  showMsg('朝のステータス記録！HP:'+st.hp+' MP:'+st.mp+(st.mp<MP_THRESHOLD?' → MP不足、まず運動しよう！':' → 今日も冒険開始だ！'));
+}
+
+function renderGrid(){
+  const g=document.getElementById('qgrid');
+  const locked=isLocked();
+  g.innerHTML=QUESTS.map(q=>{
+    const isEx=q.special==='exercise';
+    const lockedThis=!isEx&&locked;
+    if(q.special==='nodrink'){
+      const ans=D.nodrink[TDK];
+      return`<div class="qcard${ans==='yes'?' hasdone':''}${lockedThis?' locked':''}" onclick="${lockedThis?'':"openModal('nodrink')"}">
+        <div class="qi">${q.icon}</div><div class="qn">${q.name}</div>
+        ${lockedThis?'<div class="qlk">🔒ロック</div>':`<div class="qst ${ans==='yes'?'sdone':'snot'}">${ans==='yes'?'★禁酒':ans==='no'?'✕飲酒':'選択▶'}</div>`}
+      </div>`;
+    }
+    const done=questDone(q.id);
+    const names=subDoneNames(q.id);
+    return`<div class="qcard${done?' hasdone':''}${isEx?' exq':''}${lockedThis?' locked':''}" onclick="${lockedThis?'':"openModal('"+q.id+"')"}">
+      <div class="qi">${q.icon}</div><div class="qn">${q.name}</div>
+      ${isEx?'<div class="qlk" style="color:#d04080">MP回復係</div>':''}
+      ${names.length?`<div class="qdone">✓${names.join(' ✓')}</div>`:''}
+      ${lockedThis?'<div class="qlk">🔒MP不足</div>':`<div class="qst ${done?'sdone':'snot'}">${done?'★完了':'タップ▶'}</div>`}
+    </div>`;
+  }).join('');
+}
+
+function openModal(qid){
+  activeQ=qid;
+  if(qid==='nodrink'){renderNodrinkModal();return;}
+  const q=QUESTS.find(x=>x.id===qid);
+  const rec=D.subRec[TDK][qid]||{};
+  const isEx=q.special==='exercise';
+  document.getElementById('modal-area').innerHTML=`<div class="modal-bg">
+    <div class="mttl">【${q.icon} ${q.name}】サブクエスト</div>
+    ${q.subs.map(s=>{
+      const sr=rec[s.id]||{};const done=!!sr._done;
+      return`<div class="si${done?' done':''}">
+        <div class="sck${done?' done':''}" onclick="toggleSub('${qid}','${s.id}')">${done?'✓':''}</div>
+        <div style="flex:1">
+          <div class="sname">${s.icon} ${s.name}</div>
+          ${isEx?`<div class="exmp">MP+${s.mp} / HP${s.hp}</div>`:''}
+          <div class="fields">${s.fields.map(f=>`<div class="fld"><label>${f.l}</label>
+            <input class="ri" style="width:58px" type="text" id="f-${s.id}-${f.k}" value="${sr[f.k]||''}" placeholder="0"
+              onclick="event.stopPropagation()" onchange="saveF('${qid}','${s.id}','${f.k}',this.value)"></div>`).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="display:flex;margin-top:5px">
+      <button class="rbtn ok" onclick="closeModal(true)">▶ 記録して閉じる</button>
+      <button class="rbtn cl" onclick="closeModal(false)">✕ 閉じる</button>
+    </div>
+  </div>`;
+  showMsg(q.name+'のサブクエストを記録しよう！');
+}
+function renderNodrinkModal(){
+  const ans=D.nodrink[TDK];
+  document.getElementById('modal-area').innerHTML=`<div class="modal-bg">
+    <div class="mttl">【🚫 禁酒】今日はどうする？</div>
+    <div style="display:flex;gap:6px;margin-bottom:7px">
+      <button class="ybtn yes${ans==='yes'?' sel':''}" onclick="setNodrink('yes')">✓ 禁酒する</button>
+      <button class="ybtn no${ans==='no'?' sel':''}" onclick="setNodrink('no')">✕ 飲む</button>
+    </div>
+    <button class="rbtn cl" onclick="closeModal(false)">✕ 閉じる</button>
+  </div>`;
+}
+function setNodrink(val){
+  Sound.play('confirm');
+  D.nodrink[TDK]=val;sv();
+  showMsg(val==='yes'?'禁酒達成！今月'+getAbsMonth()+'日目！意志の力が増す！':'今日は飲む日。記録は正直につけよう。');
+  renderNodrinkModal();renderGrid();renderHero();renderSummary();
+}
+function getAbsWeek(){const d=new Date(TODAY);d.setDate(d.getDate()-d.getDay());let c=0;for(let i=0;i<7;i++){const dd=new Date(d);dd.setDate(d.getDate()+i);if(D.nodrink[dk(dd)]==='yes')c++;}return c;}
+function getAbsMonth(){let c=0;const y=TODAY.getFullYear(),m=TODAY.getMonth();for(let i=1;i<=31;i++){const d=new Date(y,m,i);if(d.getMonth()!==m)break;if(D.nodrink[dk(d)]==='yes')c++;}return c;}
+function getAbsStreak(){let d=new Date(TODAY);let s=0;while(D.nodrink[dk(d)]==='yes'){s++;d.setDate(d.getDate()-1);}return s;}
+function getTotalAbs(){return Object.values(D.nodrink).filter(v=>v==='yes').length;}
+
+function saveF(qid,sid,key,val){
+  if(!D.subRec[TDK][qid])D.subRec[TDK][qid]={};
+  if(!D.subRec[TDK][qid][sid])D.subRec[TDK][qid][sid]={};
+  D.subRec[TDK][qid][sid][key]=val;sv();
+}
+function toggleSub(qid,sid){
+  if(!D.subRec[TDK][qid])D.subRec[TDK][qid]={};
+  if(!D.subRec[TDK][qid][sid])D.subRec[TDK][qid][sid]={};
+  const wasDone=D.subRec[TDK][qid][sid]._done;
+  const isDone = !wasDone;
+  D.subRec[TDK][qid][sid]._done=isDone;
+  const q=QUESTS.find(x=>x.id===qid);
+  const s=q.subs.find(x=>x.id===sid);
+  let msg='';
+  
+  const lvBefore = getLevel().lv;
+  
+  if(isDone){
+    Sound.play('confirm');
+    const r=D.subRec[TDK][qid][sid];
+    const detail=s.fields.map(f=>r[f.k]?f.l+':'+r[f.k]:'').filter(Boolean).join(' ');
+    msg=q.name+'▶'+s.name+'完了！'+detail;
+    if(q.special==='exercise'){
+      Sound.play('damage');
+      setTimeout(() => Sound.play('heal'), 150);
+      const st=D.status[TDK]||{hp:80,mp:60};
+      const beforeHP=st.hp,beforeMP=st.mp;
+      const wasLocked=st.mp<MP_THRESHOLD;
+      st.mp=clamp(st.mp+s.mp);
+      st.hp=clamp(st.hp+s.hp);
+      D.status[TDK]=st;
+      msg+=' → HP'+beforeHP+'→'+st.hp+' MP'+beforeMP+'→'+st.mp;
+      if(wasLocked&&st.mp>=MP_THRESHOLD)msg+=' ★ロック解除！全クエスト解放！';
+    }
+  } else {
+    Sound.play('cancel');
+    msg=q.name+'▶'+s.name+'を未完了に戻しました。';
+    if(q.special==='exercise'){
+      const st=D.status[TDK]||{hp:80,mp:60};
+      const beforeHP=st.hp,beforeMP=st.mp;
+      st.mp=clamp(st.mp-s.mp);
+      st.hp=clamp(st.hp-s.hp);
+      D.status[TDK]=st;
+      msg+=' → HP'+beforeHP+'→'+st.hp+' MP'+beforeMP+'→'+st.mp;
+      if(st.mp<MP_THRESHOLD)msg+=' ⚠️MP不足により、運動以外がロックされました';
+    }
+  }
+  
+  const lvAfter = getLevel().lv;
+  if(lvAfter > lvBefore) {
+    msg += ` ★レベルアップ！ LV.${lvBefore} → LV.${lvAfter}！`;
+    setTimeout(() => Sound.play('levelUp'), 400);
+  }
+  
+  sv();openModal(qid);renderGrid();renderHero();renderSummary();
+  showMsg(msg||'更新した');
+}
+function closeModal(doSave){
+  if(doSave&&activeQ&&activeQ!=='nodrink'){
+    Sound.play('confirm');
+    const q=QUESTS.find(x=>x.id===activeQ);
+    q.subs.forEach(s=>s.fields.forEach(f=>{
+      const el=document.getElementById('f-'+s.id+'-'+f.k);
+      if(el&&el.value)saveF(activeQ,s.id,f.k,el.value);
+    }));
+    sv();renderGrid();renderSummary();showMsg('記録保存！積み上げが続く！');
+  } else {
+    Sound.play('cancel');
+  }
+  document.getElementById('modal-area').innerHTML='';activeQ=null;
+}
+function renderSummary(){
+  const rows=[];
+  QUESTS.forEach(q=>{
+    if(q.special==='nodrink'){
+      const ans=D.nodrink[TDK];
+      if(ans)rows.push(`<div class="rec-row">${q.icon}<span style="color:#f0c040">禁酒</span>▶<span class="rv">${ans==='yes'?'達成':'飲酒'}</span></div>`);
+      return;
+    }
+    const qr=D.subRec[TDK][q.id];if(!qr)return;
+    q.subs.forEach(s=>{
+      const sr=qr[s.id];if(!sr||!sr._done)return;
+      const vals=s.fields.map(f=>sr[f.k]?f.l+':'+sr[f.k]:'').filter(Boolean).join(' / ');
+      rows.push(`<div class="rec-row">${q.icon}<span style="color:#f0c040">${q.name}</span>▶${s.icon}${s.name} <span class="rv">${vals||'完了'}</span></div>`);
+    });
+  });
+  document.getElementById('rec-list').innerHTML=rows.length?rows.join(''):'<div style="font-size:9px;color:#4a3a6a">クエストをこなして記録しよう</div>';
+}
+
+function renderCal(){
+  const isAbs=calQ==='nodrink';
+  const q=isAbs?null:QUESTS.find(x=>x.id===calQ);
+  const y=calView.getFullYear(),m=calView.getMonth();
+  document.getElementById('cal-ttl').textContent=y+'年'+(m+1)+'月【'+(isAbs?'禁酒':q.name)+'】';
+  const first=new Date(y,m,1).getDay();
+  const last=new Date(y,m+1,0).getDate();
+  let mc=0;
+  if(!isAbs)for(let i=1;i<=31;i++){const d=new Date(y,m,i);if(d.getMonth()!==m)break;const r=D.subRec[dk(d)]?.[calQ];if(r&&Object.values(r).some(s=>s&&s._done))mc++;}
+  let h='';
+  for(let i=0;i<first;i++)h+='<div class="cd"></div>';
+  for(let dd=1;dd<=last;dd++){
+    const date=new Date(y,m,dd);
+    const isT=dk(date)===TDK;
+    let cls='cd';
+    let statusText='';
+    if(isAbs){
+      const ans=D.nodrink[dk(date)];
+      if(ans==='yes'){cls+=' abs-yes';statusText='禁酒';}
+      else if(ans==='no'){cls+=' abs-no';statusText='飲酒';}
+    }
+    else{
+      const r=D.subRec[dk(date)]?.[calQ];
+      const done=r&&Object.values(r).some(s=>s&&s._done);
+      if(done){
+        if(mc<=5)cls+=' c1';
+        else if(mc<=12)cls+=' c2';
+        else if(mc<=20)cls+=' c3';
+        else cls+=' call';
+        statusText='達成';
+      }
+    }
+    if(isT)cls+=' today';
+    h+=`<div class="${cls}"><span class="c-num">${dd}</span><span class="c-status">${statusText}</span></div>`;
+  }
+  document.getElementById('cgrid').innerHTML=h;
+  document.getElementById('ctabs').innerHTML=QUESTS.map(q=>`<button class="ctab${calQ===q.id?' active':''}" onclick="calQ='${q.id}';Sound.play('select');renderCal()">${q.special==='nodrink'?'禁酒':q.name}</button>`).join('');
+  renderCalStats();
+}
+function renderCalStats(){
+  const isAbs=calQ==='nodrink';
+  const q=isAbs?null:QUESTS.find(x=>x.id===calQ);
+  const ttlEl=document.getElementById('cal-stats-ttl');
+  const statsEl=document.getElementById('abs-stats');
+  if(isAbs){
+    ttlEl.textContent='▼ 禁酒記録';
+    const wk=getAbsWeek(),mo=getAbsMonth(),tot=getTotalAbs(),streak=getAbsStreak();
+    statsEl.innerHTML=[
+      ['今週',wk],['今月',mo],['連続',streak],['累計',tot]
+    ].map(([l,v])=>`<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:60px">
+      <div style="font-size:16px;color:#f0c040">${v}</div><div style="font-size:9px;color:#6a5a4a">${l}</div></div>`).join('');
+  } else {
+    ttlEl.textContent='▼ ' + q.name + '記録';
+    const wk=getQuestWeekCount(calQ),mo=getQuestMonthCount(calQ),tot=getQuestTotalCount(calQ);
+    statsEl.innerHTML=[
+      ['今週',wk],['今月',mo],['累計',tot]
+    ].map(([l,v])=>`<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:60px">
+      <div style="font-size:16px;color:#f0c040">${v}</div><div style="font-size:9px;color:#6a5a4a">${l}</div></div>`).join('');
+  }
+}
+
+function getWkKey(){const d=new Date(TODAY);d.setDate(d.getDate()-d.getDay());return dk(d);}
+function getMoKey(){return TODAY.getFullYear()+'-'+(TODAY.getMonth()+1);}
+function getQuestWeekCount(qid){const d=new Date(TODAY);d.setDate(d.getDate()-d.getDay());let c=0;for(let i=0;i<7;i++){const dd=new Date(d);dd.setDate(d.getDate()+i);const r=D.subRec[dk(dd)]?.[qid];if(r&&Object.values(r).some(s=>s&&s._done))c++;}return c;}
+function getQuestMonthCount(qid){let c=0;const y=TODAY.getFullYear(),m=TODAY.getMonth();for(let i=1;i<=31;i++){const d=new Date(y,m,i);if(d.getMonth()!==m)break;const r=D.subRec[dk(d)]?.[qid];if(r&&Object.values(r).some(s=>s&&s._done))c++;}return c;}
+function getQuestTotalCount(qid){let c=0;Object.keys(D.subRec).forEach(d=>{const r=D.subRec[d]?.[qid];if(r&&Object.values(r).some(s=>s&&s._done))c++;});return c;}
+
+function renderGoalInputs(){
+  const wk=getWkKey(),mk=getMoKey();
+  const qs=QUESTS.filter(q=>q.special!=='nodrink');
+  document.getElementById('wk-inp').innerHTML=qs.map(q=>`<div class="gr">
+    <div class="glbl">${q.icon}${q.name}</div><input class="ri" type="number" id="wk-${q.id}" value="${(D.wk[wk]||{})[q.id]||''}" placeholder="0">
+    <div class="gunit">回/週</div><div class="gprog">今週${getQuestWeekCount(q.id)}回</div></div>`).join('')+
+    `<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" id="wk-nodrink" value="${(D.wk[wk]||{}).nodrink||''}" placeholder="0">
+    <div class="gunit">日/週</div><div class="gprog">今週${getAbsWeek()}日</div></div>`;
+  document.getElementById('mo-inp').innerHTML=qs.map(q=>`<div class="gr">
+    <div class="glbl">${q.icon}${q.name}</div><input class="ri" type="number" id="mo-${q.id}" value="${(D.mo[mk]||{})[q.id]||''}" placeholder="0">
+    <div class="gunit">回/月</div><div class="gprog">今月${getQuestMonthCount(q.id)}回</div></div>`).join('')+
+    `<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" id="mo-nodrink" value="${(D.mo[mk]||{}).nodrink||''}" placeholder="0">
+    <div class="gunit">日/月</div><div class="gprog">今月${getAbsMonth()}日</div></div>`;
+}
+function saveWk(){Sound.play('confirm');const wk=getWkKey();if(!D.wk[wk])D.wk[wk]={};QUESTS.filter(q=>q.special!=='nodrink').forEach(q=>{D.wk[wk][q.id]=parseInt(document.getElementById('wk-'+q.id).value)||0;});D.wk[wk].nodrink=parseInt(document.getElementById('wk-nodrink').value)||0;sv();showMsg('今週の目標を決定した！');}
+function saveMo(){Sound.play('confirm');const mk=getMoKey();if(!D.mo[mk])D.mo[mk]={};QUESTS.filter(q=>q.special!=='nodrink').forEach(q=>{D.mo[mk][q.id]=parseInt(document.getElementById('mo-'+q.id).value)||0;});D.mo[mk].nodrink=parseInt(document.getElementById('mo-nodrink').value)||0;sv();showMsg('今月の目標を決定した！');}
+
+function renderBoss(){
+  const existing=D.boss.length?D.boss:[{name:'',type:'旅行'},{name:'',type:'出版'},{name:'',type:'その他'}];
+  document.getElementById('boss-inp').innerHTML=existing.map((g,i)=>`
+    <div style="display:flex;gap:5px;margin-bottom:5px;align-items:center;flex-wrap:wrap">
+      <input class="ri" style="flex:1;width:auto;min-width:100px" placeholder="例:イタリア旅行" value="${g.name}" id="boss-nm-${i}">
+      <select class="ri" id="boss-tp-${i}" style="width:60px">
+        <option ${g.type==='旅行'?'selected':''}>旅行</option><option ${g.type==='出版'?'selected':''}>出版</option>
+        <option ${g.type==='資格'?'selected':''}>資格</option><option ${g.type==='語学'?'selected':''}>語学</option>
+        <option ${g.type==='その他'?'selected':''}>その他</option></select></div>`).join('')+
+    `<button class="rbtn" onclick="addBossRow();Sound.play('select')" style="font-size:10px">+ BOSSを追加</button>`;
+  
+  const{tot,lv}=getLevel();
+  const bossImages = ['boss_slime.png', 'boss_dragon.png', 'boss_demon.png'];
+  
+  document.getElementById('boss-status').innerHTML=D.boss.filter(g=>g.name).map((g,i)=>{
+    const pwr=Math.min(100,Math.round(tot/(30*(i+1))*100));
+    const isDefeated = pwr >= 100;
+    const imgFile = bossImages[i] || 'boss_demon.png';
+    const hp = 100 - pwr;
+    
+    return`
+    <div class="boss-card">
+      <div class="boss-img-box">
+        <img class="boss-img ${isDefeated ? 'defeated' : ''}" src="${imgFile}" alt="${g.name}">
+      </div>
+      <div class="boss-info">
+        <div class="boss-name">★ ${g.name}【${g.type}】</div>
+        <div class="boss-hp-bg">
+          <div class="boss-hp-bar" style="width:${hp}%"></div>
+        </div>
+        <div class="boss-hp-txt">
+          <span>BOSS HP: ${hp}%</span>
+          <span style="color:#f0c040">討伐力: ${pwr}%</span>
+        </div>
+        <div class="boss-meta">
+          ${isDefeated ? '✨討伐完了！おめでとう！' : 'Lv.'+lv+' 累計'+tot+'回の行動でダメージ！'}
+        </div>
+      </div>
+    </div>`;
+  }).join('')||'<div style="font-size:9px;color:#4a3a6a">BOSSを設定してください</div>';
+}
+function addBossRow(){D.boss.push({name:'',type:'その他'});sv();renderBoss();}
+function saveBoss(){
+  Sound.play('confirm');
+  D.boss=[];
+  document.querySelectorAll('[id^="boss-nm-"]').forEach((el,i)=>{
+    const nm=el.value.trim();const tp=document.getElementById('boss-tp-'+i).value;
+    if(nm)D.boss.push({name:nm,type:tp});
+  });
+  sv();renderBoss();showMsg('年間BOSSを設定した！');
+}
+
+document.getElementById('cprev').onclick=()=>{Sound.play('select');calView.setMonth(calView.getMonth()-1);renderCal();};
+document.getElementById('cnext').onclick=()=>{Sound.play('select');calView.setMonth(calView.getMonth()+1);renderCal();};
+
+renderHero();renderGrid();renderSummary();
+updateMuteButton();
+showMsg('勇者よ！MPが低ければまず運動だ！運動でMPを回復させ、他のクエストを解放しよう！');
+</script>
+</body>
+</html>
