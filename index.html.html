@@ -96,8 +96,11 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
 .cal-ttl{color:#f0c040;font-size:11px}
 .cnav{background:#1a0a2e;border:1px solid #8b6914;color:#f0c040;font-family:'DotGothic16',monospace;font-size:11px;cursor:pointer;padding:2px 7px}
 .cnav:hover{background:#2a1a3e}
-.ctabs{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}
-.ctab{background:#1a0a2e;border:1px solid #4a3a6a;color:#a0c8f0;font-family:'DotGothic16',monospace;font-size:10px;cursor:pointer;padding:3px 5px}
+.ctabs{display:flex;gap:4px;margin-bottom:6px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.ctabs::-webkit-scrollbar{height:4px}
+.ctabs::-webkit-scrollbar-track{background:#0d0520}
+.ctabs::-webkit-scrollbar-thumb{background:#8b6914;border-radius:2px}
+.ctab{background:#1a0a2e;border:1px solid #4a3a6a;color:#a0c8f0;font-family:'DotGothic16',monospace;font-size:10px;cursor:pointer;padding:4px 8px;flex:0 0 auto}
 .ctab.active{background:#f0c040;color:#1a0a2e;border-color:#f0c040}
 .dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:9px;color:#4a3a6a;margin-bottom:2px}
 .cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
@@ -111,10 +114,11 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
 .cd.call{background:#f0c040;color:#1a0a2e}
 .cd.abs-yes{background:#1a2a4a;color:#6090d0}
 .cd.abs-no{background:#3a0a0a;color:#a04040}
-.gr{display:flex;align-items:center;gap:5px;margin-bottom:6px;flex-wrap:wrap}
-.glbl{font-size:12px;color:#a0c8f0;width:60px;font-weight:bold}
-.gunit{font-size:9px;color:#6a5a4a}
-.gprog{font-size:9px;color:#f0c040;margin-left:auto}
+.gr{display:flex;align-items:center;gap:5px;margin-bottom:6px;flex-wrap:nowrap;width:100%}
+.glbl{font-size:12px;color:#a0c8f0;width:65px;font-weight:bold;flex-shrink:0}
+.gr .ri{width:46px;padding:3px;flex-shrink:0}
+.gunit{font-size:9px;color:#6a5a4a;width:32px;flex-shrink:0}
+.gprog{font-size:9px;color:#f0c040;margin-left:auto;text-align:right;flex-grow:1;min-width:60px}
 .rulehint{font-size:9px;color:#5a7a3a;margin-top:5px;padding:4px;border:1px solid #2a4a1a;background:#0a1a05}
 .boss-card{border:2px solid #8b6914;background:#0d0520;padding:6px;margin-bottom:8px;display:flex;gap:10px}
 .boss-img-box{width:76px;height:76px;border:1px solid #802020;background:#1a0505;display:flex;align-items:center;justify-content:center;image-rendering:pixelated;flex-shrink:0}
@@ -126,8 +130,10 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
 .boss-hp-bar{height:100%;background:linear-gradient(to right, #801010, #e04040);transition:width 0.5s}
 .boss-hp-txt{display:flex;justify-content:space-between;font-size:8px;color:#e04040}
 .boss-meta{font-size:8px;color:#6a5a4a;margin-top:2px}
-@media (max-width:420px){
-.tb{font-size:8px;padding:7px 1px}
+@media (max-width:480px){
+body{padding:8px}
+.rpg{padding:6px}
+.tb{font-size:11px;padding:8px 1px}
 .tb:hover::before, .tb.active::before{display:none}
 .qi{font-size:20px}
 .qn{font-size:13px}
@@ -184,10 +190,10 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
         </div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap">
-      <input class="ri" type="number" id="i-hp" placeholder="HP" min="0" max="100">
-      <input class="ri" type="number" id="i-mp" placeholder="MP" min="0" max="100">
-      <button class="rbtn ok" onclick="setStatus()">朝の記録</button>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+      <input class="ri" style="flex:1;width:0;min-width:50px" type="number" id="i-hp" placeholder="HP" min="0" max="100">
+      <input class="ri" style="flex:1;width:0;min-width:50px" type="number" id="i-mp" placeholder="MP" min="0" max="100">
+      <button class="rbtn ok" style="flex:1.5;white-space:nowrap;padding:6px 2px" onclick="setStatus()">朝の記録</button>
     </div>
     <div class="rulehint">MPが30未満だと運動以外ロック。運動するとMP回復＋HP消費</div>
   </div>
@@ -880,9 +886,9 @@ function saveMo(){Sound.play('confirm');const mk=getMoKey();if(!D.mo[mk])D.mo[mk
 function renderBoss(){
   const existing=D.boss.length?D.boss:[{name:'',type:'旅行'},{name:'',type:'出版'},{name:'',type:'その他'}];
   document.getElementById('boss-inp').innerHTML=existing.map((g,i)=>`
-    <div style="display:flex;gap:5px;margin-bottom:5px;align-items:center;flex-wrap:wrap">
-      <input class="ri" style="flex:1;width:auto;min-width:100px" placeholder="例:イタリア旅行" value="${g.name}" id="boss-nm-${i}">
-      <select class="ri" id="boss-tp-${i}" style="width:60px">
+    <div style="display:flex;gap:5px;margin-bottom:5px;align-items:center">
+      <input class="ri" style="flex:1;min-width:0" placeholder="例:イタリア旅行" value="${g.name}" id="boss-nm-${i}">
+      <select class="ri" id="boss-tp-${i}" style="width:70px;flex-shrink:0">
         <option ${g.type==='旅行'?'selected':''}>旅行</option><option ${g.type==='出版'?'selected':''}>出版</option>
         <option ${g.type==='資格'?'selected':''}>資格</option><option ${g.type==='語学'?'selected':''}>語学</option>
         <option ${g.type==='その他'?'selected':''}>その他</option></select></div>`).join('')+
