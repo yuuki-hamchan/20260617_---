@@ -69,9 +69,13 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
 .sdone{background:#2a4a00;color:#80d040;border:1px solid #40a000}
 .snot{background:#2a0a0a;color:#a04040;border:1px solid #602020}
 .qlk{font-size:9px;color:#a04040;margin-top:3px}
-.modal-bg{background:#0a0518;border:3px double #f0c040;outline:2px solid #8b6914;padding:8px;margin-bottom:7px;box-shadow:0 0 15px rgba(0,0,0,0.9)}
+.modal-bg{background:#0a0518;border:3px double #f0c040;outline:2px solid #8b6914;padding:8px;margin-bottom:7px;box-shadow:0 0 15px rgba(0,0,0,0.9);display:flex;flex-direction:column;gap:8px;width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
 .mttl{color:#f0c040;font-size:13px;margin-bottom:6px;text-align:center;border-bottom:1px solid #4a3a6a;padding-bottom:3px;letter-spacing:1px}
-.si{display:flex;align-items:flex-start;gap:5px;margin-bottom:5px;padding:5px;border:1px solid #4a3a6a;background:#090215;transition:border-color 0.2s}
+.si-container{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;width:100%;min-width:0}
+.si-container::-webkit-scrollbar{height:4px}
+.si-container::-webkit-scrollbar-track{background:#0d0520}
+.si-container::-webkit-scrollbar-thumb{background:#8b6914;border-radius:2px}
+.si{display:flex;align-items:flex-start;gap:5px;padding:5px;border:1px solid #4a3a6a;background:#090215;transition:border-color 0.2s;flex:0 0 170px}
 .si:hover{border-color:#8b6914}
 .si.done{border-color:#f0c040;background:#1a1200}
 .sck{width:16px;height:16px;border:2px solid #8b6914;background:#1a0a2e;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;color:#f0c040;flex-shrink:0;margin-top:1px}
@@ -668,22 +672,24 @@ function openModal(qid){
   const isEx=q.special==='exercise';
   document.getElementById('modal-area').innerHTML=`<div class="modal-bg">
     <div class="mttl">【${q.icon} ${q.name}】サブクエスト</div>
-    ${q.subs.map(s=>{
-      const sr=rec[s.id]||{};const done=!!sr._done;
-      return`<div class="si${done?' done':''}">
-        <div class="sck${done?' done':''}" onclick="toggleSub('${qid}','${s.id}')">${done?'✓':''}</div>
-        <div style="flex:1">
-          <div class="sname">${s.icon} ${s.name}</div>
-          ${isEx?`<div class="exmp">MP+${s.mp} / HP${s.hp}</div>`:''}
-          <div class="fields">${s.fields.map(f=>`<div class="fld"><label>${f.l}</label>
-            <input class="ri" style="width:58px" type="text" id="f-${s.id}-${f.k}" value="${sr[f.k]||''}" placeholder="0"
-              onclick="event.stopPropagation()" onchange="saveF('${qid}','${s.id}','${f.k}',this.value)"></div>`).join('')}
-        </div>
-      </div>`;
-    }).join('')}
-    <div style="display:flex;margin-top:5px">
-      <button class="rbtn ok" onclick="closeModal(true)">▶ 記録して閉じる</button>
-      <button class="rbtn cl" onclick="closeModal(false)">✕ 閉じる</button>
+    <div class="si-container">
+      ${q.subs.map(s=>{
+        const sr=rec[s.id]||{};const done=!!sr._done;
+        return`<div class="si${done?' done':''}">
+          <div class="sck${done?' done':''}" onclick="toggleSub('${qid}','${s.id}')">${done?'✓':''}</div>
+          <div style="flex:1">
+            <div class="sname">${s.icon} ${s.name}</div>
+            ${isEx?`<div class="exmp">MP+${s.mp} / HP${s.hp}</div>`:''}
+            <div class="fields">${s.fields.map(f=>`<div class="fld"><label>${f.l}</label>
+              <input class="ri" style="width:58px" type="text" id="f-${s.id}-${f.k}" value="${sr[f.k]||''}" placeholder="0"
+                onclick="event.stopPropagation()" onchange="saveF('${qid}','${s.id}','${f.k}',this.value)"></div>`).join('')}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:5px;width:100%">
+      <button class="rbtn ok" style="flex:1" onclick="closeModal(true)">▶ 記録して閉じる</button>
+      <button class="rbtn cl" style="flex:1;margin-left:0" onclick="closeModal(false)">✕ 閉じる</button>
     </div>
   </div>`;
   showMsg(q.name+'のサブクエストを記録しよう！');
