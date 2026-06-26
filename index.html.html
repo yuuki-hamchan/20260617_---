@@ -206,8 +206,13 @@ body{padding:8px}
   <div id="modal-area"></div>
 
   <div class="panel">
-    <div class="ptl">▼ 本日のクエスト</div>
-    <div class="qgrid" id="qgrid"></div>
+    <div class="ptl">▼ メインクエスト</div>
+    <div class="qgrid" id="qgrid-main"></div>
+  </div>
+
+  <div class="panel">
+    <div class="ptl">▼ サブクエスト</div>
+    <div class="qgrid" id="qgrid-sub"></div>
   </div>
 
   <div class="panel">
@@ -270,65 +275,68 @@ body{padding:8px}
 <script>
 const MP_THRESHOLD=30;
 const QUESTS=[
-  {id:'publish',name:'発信',icon:'📣',color:'#60a030',
+  {id:'publish',name:'発信',icon:'📣',color:'#60a030',category:'main',
    subs:[
      {id:'note',name:'note',icon:'📝',fields:[{k:'words',l:'文字数'},{k:'time',l:'時間分'}]},
      {id:'standfm',name:'stand.fm',icon:'🎙',fields:[{k:'time',l:'収録分'}]},
      {id:'x',name:'X',icon:'✖',fields:[{k:'count',l:'投稿数'}]},
      {id:'insta',name:'Instagram',icon:'📷',fields:[{k:'count',l:'投稿数'}]},
    ]},
-  {id:'exercise',name:'運動',icon:'⚔',color:'#d04080',special:'exercise',
+  {id:'exercise',name:'運動',icon:'⚔',color:'#d04080',special:'exercise',category:'main',
    subs:[
      {id:'run',name:'ランニング',icon:'🏃',mp:20,hp:-5,fields:[{k:'km',l:'距離km'},{k:'min',l:'時間分'}]},
      {id:'abs',name:'腹筋運動',icon:'💪',mp:10,hp:-3,fields:[{k:'sets',l:'セット'},{k:'min',l:'時間分'}]},
      {id:'core',name:'体幹運動',icon:'🧘',mp:10,hp:-3,fields:[{k:'sets',l:'セット'},{k:'min',l:'時間分'}]},
      {id:'other',name:'その他',icon:'🏋',mp:15,hp:-4,fields:[{k:'content',l:'内容'},{k:'min',l:'時間分'}]},
    ]},
-  {id:'reading',name:'読書',icon:'📖',color:'#4080f0',
+  {id:'reading',name:'読書',icon:'📖',color:'#4080f0',category:'main',
    subs:[
      {id:'book',name:'書籍',icon:'📚',fields:[{k:'pages',l:'ページ'},{k:'chapter',l:'章'}]},
      {id:'ebook',name:'電子書籍',icon:'📱',fields:[{k:'pages',l:'ページ'},{k:'chapter',l:'章'}]},
      {id:'audio',name:'音声読書',icon:'🎧',fields:[{k:'min',l:'時間分'}]},
    ]},
-  {id:'study',name:'学習',icon:'🔮',color:'#8060d0',
+  {id:'study',name:'学習',icon:'🔮',color:'#8060d0',category:'main',
    subs:[
      {id:'offline',name:'オフライン',icon:'📓',fields:[{k:'pages',l:'ページ'},{k:'chapter',l:'章'}]},
      {id:'online',name:'オンライン',icon:'💻',fields:[{k:'min',l:'時間分'}]},
    ]},
-  {id:'language',name:'語学',icon:'🌍',color:'#c08020',
-   subs:[{id:'italian',name:'イタリア語',icon:'🇮🇹',fields:[{k:'min',l:'時間分'},{k:'pages',l:'ページ'},{k:'words',l:'単語数'}]}]},
-  {id:'nodrink',name:'禁酒',icon:'🚫',color:'#20a080',special:'nodrink',subs:[]},
-  {id:'work',name:'仕事',icon:'💼',color:'#70a0f0',
+  {id:'language',name:'語学',icon:'🌍',color:'#c08020',category:'main',
+   subs:[
+     {id:'italian',name:'イタリア語',icon:'🇮🇹',fields:[{k:'min',l:'時間分'},{k:'pages',l:'ページ'},{k:'words',l:'単語数'}]},
+     {id:'other',name:'その他',icon:'🌍',fields:[{k:'content',l:'内容'},{k:'min',l:'時間分'},{k:'pages',l:'ページ'},{k:'words',l:'単語数'}]}
+   ]},
+  {id:'nodrink',name:'禁酒',icon:'🚫',color:'#20a080',special:'nodrink',category:'main',subs:[]},
+  {id:'work',name:'仕事',icon:'💼',color:'#70a0f0',category:'sub',
    subs:[
      {id:'main',name:'本業タスク',icon:'💻',fields:[{k:'count',l:'タスク数'},{k:'time',l:'時間分'}]},
      {id:'sub',name:'副業・創作',icon:'📝',fields:[{k:'time',l:'時間分'}]},
      {id:'arrange',name:'整理・メール',icon:'📁',fields:[{k:'count',l:'処理数'}]},
    ]},
-  {id:'life',name:'生活',icon:'🏠',color:'#80c080',
+  {id:'life',name:'生活',icon:'🏠',color:'#80c080',category:'sub',
    subs:[
      {id:'clean',name:'掃除・洗濯',icon:'🧹',fields:[{k:'min',l:'時間分'}]},
      {id:'cook',name:'料理・自炊',icon:'🍳',fields:[{k:'count',l:'回数'}]},
      {id:'morning',name:'早起き・朝活',icon:'🌅',fields:[{k:'time',l:'起床時間'}]},
    ]},
-  {id:'hobby',name:'趣味',icon:'🎮',color:'#e08080',
+  {id:'hobby',name:'趣味',icon:'🎮',color:'#e08080',category:'sub',
    subs:[
      {id:'create',name:'創作・開発',icon:'🎨',fields:[{k:'min',l:'時間分'}]},
      {id:'game',name:'ゲーム・読書',icon:'🕹️',fields:[{k:'min',l:'時間分'}]},
      {id:'movie',name:'映画・アニメ',icon:'🎬',fields:[{k:'count',l:'本数'}]},
    ]},
-  {id:'family',name:'家族',icon:'👪',color:'#f0a060',
+  {id:'family',name:'家族',icon:'👪',color:'#f0a060',category:'sub',
    subs:[
      {id:'housework',name:'家事手伝い',icon:'🧺',fields:[{k:'min',l:'時間分'}]},
      {id:'service',name:'家族サービス',icon:'🎁',fields:[{k:'min',l:'時間分'}]},
      {id:'contact',name:'連絡・団らん',icon:'📞',fields:[{k:'min',l:'時間分'}]},
    ]},
-  {id:'virtue',name:'徳',icon:'✨',color:'#e0c040',
+  {id:'virtue',name:'徳',icon:'✨',color:'#e0c040',category:'sub',
    subs:[
      {id:'kind',name:'一日一善',icon:'🤝',fields:[{k:'content',l:'内容'}]},
      {id:'cleanup',name:'ゴミ拾い・片付',icon:'🚮',fields:[{k:'count',l:'回数'}]},
      {id:'thanks',name:'感謝の言葉',icon:'🙏',fields:[{k:'count',l:'回数'}]},
    ]},
-  {id:'beauty',name:'美',icon:'💄',color:'#d060a0',
+  {id:'beauty',name:'美',icon:'💄',color:'#d060a0',category:'sub',
    subs:[
      {id:'skin',name:'スキンケア',icon:'🧴',fields:[{k:'min',l:'時間分'}]},
      {id:'hair',name:'ヘアケア',icon:'💈',fields:[{k:'min',l:'時間分'}]},
@@ -641,9 +649,11 @@ function setStatus(){
 }
 
 function renderGrid(){
-  const g=document.getElementById('qgrid');
+  const gMain=document.getElementById('qgrid-main');
+  const gSub=document.getElementById('qgrid-sub');
   const locked=isLocked();
-  g.innerHTML=QUESTS.map(q=>{
+  
+  const renderCard = q => {
     const isEx=q.special==='exercise';
     const lockedThis=!isEx&&locked;
     if(q.special==='nodrink'){
@@ -661,7 +671,10 @@ function renderGrid(){
       ${names.length?`<div class="qdone">✓${names.join(' ✓')}</div>`:''}
       ${lockedThis?'<div class="qlk">🔒MP不足</div>':`<div class="qst ${done?'sdone':'snot'}">${done?'★完了':'タップ▶'}</div>`}
     </div>`;
-  }).join('');
+  };
+
+  if (gMain) gMain.innerHTML=QUESTS.filter(q=>q.category==='main').map(renderCard).join('');
+  if (gSub) gSub.innerHTML=QUESTS.filter(q=>q.category==='sub').map(renderCard).join('');
 }
 
 function openModal(qid){
@@ -671,7 +684,7 @@ function openModal(qid){
   const rec=D.subRec[TDK][qid]||{};
   const isEx=q.special==='exercise';
   document.getElementById('modal-area').innerHTML=`<div class="modal-bg">
-    <div class="mttl">【${q.icon} ${q.name}】サブクエスト</div>
+    <div class="mttl">【${q.icon} ${q.name}】アクション</div>
     <div class="si-container">
       ${q.subs.map(s=>{
         const sr=rec[s.id]||{};const done=!!sr._done;
@@ -692,7 +705,7 @@ function openModal(qid){
       <button class="rbtn cl" style="flex:1;margin-left:0" onclick="closeModal(false)">✕ 閉じる</button>
     </div>
   </div>`;
-  showMsg(q.name+'のサブクエストを記録しよう！');
+  showMsg(q.name+'のアクションを記録しよう！');
 }
 function renderNodrinkModal(){
   const ans=D.nodrink[TDK];
