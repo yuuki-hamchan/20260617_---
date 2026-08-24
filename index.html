@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>勇者haMBの習慣冒険記</title>
+<title>はむこばのhamちゃんの習慣冒険記</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -53,6 +53,8 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
 .rbtn.ok:hover{background:#1e3d0c}
 .rbtn.cl{border-color:#802020;color:#d04040;margin-left:5px}
 .rbtn.cl:hover{background:#3d0c0c}
+.qcat-tab{opacity:.5;font-size:11px;padding:8px 4px}
+.qcat-tab.active{opacity:1;background:#3a2a4e;color:#fff;border-color:#f0c040}
 .lock-banner{background:#3a0a0a;border:2px solid #802020;color:#d04040;font-size:10px;padding:6px;margin-bottom:6px;text-align:center;font-weight:bold}
 .qgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 .qcard{background:#0d0520;border:2px solid #4a3a6a;padding:8px 6px;cursor:pointer;text-align:center;position:relative;transition:all 0.2s}
@@ -70,6 +72,18 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
 .snot{background:#2a0a0a;color:#a04040;border:1px solid #602020}
 .qlk{font-size:9px;color:#a04040;margin-top:3px}
 .modal-bg{background:#0a0518;border:3px double #f0c040;outline:2px solid #8b6914;padding:8px;margin-bottom:7px;box-shadow:0 0 15px rgba(0,0,0,0.9);display:flex;flex-direction:column;gap:8px;width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px 10px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-overlay .modal-bg{width:100%;max-width:640px;margin-bottom:0;max-height:calc(100vh - 32px);overflow-y:auto;padding:16px}
+.modal-overlay .mttl{font-size:19px;margin-bottom:10px;padding-bottom:6px;color:#ffd76a}
+.modal-overlay .si-container{flex-direction:column;overflow-x:hidden;overflow-y:visible;padding-bottom:0}
+.modal-overlay .si{width:100%;box-sizing:border-box;padding:11px;gap:8px;border-width:2px}
+.modal-overlay .sck{min-width:96px;font-size:15px;padding:9px 12px}
+.modal-overlay .sname{font-size:17px;margin-bottom:5px;color:#c2e0ff}
+.modal-overlay .exmp{font-size:13px;margin-bottom:6px;color:#ff8fc4}
+.modal-overlay .fld label{font-size:12px;color:#e0d4c0}
+.modal-overlay .fld input.ri{width:78px;font-size:17px;padding:7px 8px;color:#fff8ea}
+.modal-overlay .rbtn{font-size:16px;padding:11px 12px}
+.modal-overlay .ybtn{font-size:17px;padding:15px}
 .mttl{color:#f0c040;font-size:13px;margin-bottom:6px;text-align:center;border-bottom:1px solid #4a3a6a;padding-bottom:3px;letter-spacing:1px}
 .si-container{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;width:100%;min-width:0}
 .si-container::-webkit-scrollbar{height:4px}
@@ -78,8 +92,8 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
 .si{display:flex;align-items:flex-start;gap:5px;padding:5px;border:1px solid #4a3a6a;background:#090215;transition:border-color 0.2s;flex:0 0 170px}
 .si:hover{border-color:#8b6914}
 .si.done{border-color:#f0c040;background:#1a1200}
-.sck{width:16px;height:16px;border:2px solid #8b6914;background:#1a0a2e;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;color:#f0c040;flex-shrink:0;margin-top:1px}
-.sck.done{background:#2a4a00;border-color:#40a000}
+.sck{width:auto;min-width:60px;height:auto;border:2px solid #8b6914;background:#1a0a2e;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;color:#f0c040;flex-shrink:0;margin-top:1px;padding:5px 8px;font-weight:bold;white-space:nowrap;text-align:center}
+.sck.done{background:#2a4a00;border-color:#40a000;color:#80d040}
 .sname{font-size:12px;color:#a0c8f0;margin-bottom:2px;font-weight:bold}
 .exmp{font-size:8px;color:#d04080;margin-bottom:3px}
 .fields{display:flex;gap:4px;flex-wrap:wrap}
@@ -118,12 +132,30 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
 .cd.call{background:#f0c040;color:#1a0a2e}
 .cd.abs-yes{background:#1a2a4a;color:#6090d0}
 .cd.abs-no{background:#3a0a0a;color:#a04040}
-.gr{display:flex;align-items:center;gap:5px;margin-bottom:6px;flex-wrap:nowrap;width:100%}
+.gr{display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:nowrap;width:100%}
 .glbl{font-size:12px;color:#a0c8f0;width:65px;font-weight:bold;flex-shrink:0}
 .gr .ri{width:46px;padding:3px;flex-shrink:0}
 .gunit{font-size:9px;color:#6a5a4a;width:32px;flex-shrink:0}
-.gprog{font-size:9px;color:#f0c040;margin-left:auto;text-align:right;flex-grow:1;min-width:60px}
+.gprog{font-size:10px;color:#80d040;margin-left:auto;text-align:right;flex-grow:1;min-width:50px;font-weight:bold}
 .rulehint{font-size:9px;color:#5a7a3a;margin-top:5px;padding:4px;border:1px solid #2a4a1a;background:#0a1a05}
+.grow{margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid #2a1a3e}
+.grow:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.gr-bar-wrap{display:flex;align-items:center;gap:6px}
+.gr-bar-wrap .bbg{height:10px}
+.gr-bar-fill{background:linear-gradient(to right,#a08020,#f0c040)}
+.grow.achieved .gr-bar-fill{background:linear-gradient(to right,#2a6010,#80d040);box-shadow:0 0 6px rgba(128,208,64,.6)}
+.gr-bar-txt{font-size:9px;color:#8a7a6a;white-space:nowrap;min-width:76px;text-align:right}
+.mission-flash{position:fixed;inset:0;background:#fff;z-index:2100;animation:missionFlash .45s ease-out forwards;pointer-events:none}
+@keyframes missionFlash{0%{opacity:.95}100%{opacity:0}}
+.mission-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center}
+.mission-card{animation:missionPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes missionPop{0%{transform:scale(.2);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:scale(1)}}
+.mission-title{font-size:clamp(28px,9vw,44px);font-weight:bold;letter-spacing:2px;margin-bottom:14px;color:#f0c040;text-shadow:0 0 24px rgba(240,192,64,.9),3px 3px 0 #000,-1px -1px 0 #000;animation:missionShake .35s ease-in-out 3}
+.mission-title.monthly{color:#ff6fa8;text-shadow:0 0 24px rgba(255,111,168,.9),3px 3px 0 #000,-1px -1px 0 #000}
+@keyframes missionShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-2.5deg)}75%{transform:rotate(2.5deg)}}
+.mission-sub{font-size:clamp(15px,4.5vw,20px);color:#fff;margin-bottom:26px;text-shadow:2px 2px 0 #000,-1px -1px 0 #000;font-weight:bold;letter-spacing:1px}
+.mission-btn{background:#2a1a3e;border:3px double #f0c040;outline:2px solid #8b6914;color:#f0c040;font-family:'DotGothic16',monospace;font-size:15px;cursor:pointer;padding:12px 30px}
+.mission-btn:hover{background:#3a2a4e;color:#fff}
 .boss-card{border:2px solid #8b6914;background:#0d0520;padding:6px;margin-bottom:8px;display:flex;gap:10px}
 .boss-img-box{width:76px;height:76px;border:1px solid #802020;background:#1a0505;display:flex;align-items:center;justify-content:center;image-rendering:pixelated;flex-shrink:0}
 .boss-img{width:100%;height:100%;object-fit:contain;transition:filter 0.5s}
@@ -134,6 +166,14 @@ body{background:#070210;background-image:radial-gradient(#1a0a3a 20%, transparen
 .boss-hp-bar{height:100%;background:linear-gradient(to right, #801010, #e04040);transition:width 0.5s}
 .boss-hp-txt{display:flex;justify-content:space-between;font-size:8px;color:#e04040}
 .boss-meta{font-size:8px;color:#6a5a4a;margin-top:2px}
+.survey-hero-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:8px}
+.survey-hero-box{width:120px;height:120px;border:3px double #8b6914;outline:2px solid #f0c040;background:#0d0520;padding:4px;display:flex;align-items:center;justify-content:center;position:relative;transition:box-shadow .4s ease,transform .4s ease}
+.survey-hero-img{width:100%;height:100%;object-fit:contain;transition:filter .4s ease}
+.survey-hero-box.charging::before{content:"";position:absolute;inset:-8px;border-radius:50%;background:radial-gradient(circle, rgba(240,192,64,.55), transparent 70%);animation:surveyChargePulse 1.1s infinite;pointer-events:none}
+@keyframes surveyChargePulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+.survey-charge-bar{width:120px;height:8px;background:#1a0a2e;border:1px solid #4a3a6a;margin-top:7px;position:relative;overflow:hidden}
+.survey-charge-fill{height:100%;background:linear-gradient(to right,#a08020,#f0c040,#fff8c0);transition:width .4s ease}
+.survey-charge-txt{font-size:9px;color:#f0c040;margin-top:3px;letter-spacing:1px}
 @media (max-width:480px){
 body{padding:8px}
 .rpg{padding:6px}
@@ -149,14 +189,14 @@ body{padding:8px}
 <body>
 <div class="rpg"><div class="rb">
 <div class="ttl-area">
-  <div class="ttl">★ 勇者 haMB の冒険記録 ★</div>
+  <div class="ttl">はむこばのhamちゃん　冒険記録</div>
   <button class="mute-btn" id="mute-btn" onclick="toggleMute()">🔊 音ON</button>
 </div>
 
 <div class="tabs">
-  <button class="tb active" onclick="sw('today')">今日</button>
-  <button class="tb" onclick="sw('calendar')">記録</button>
-  <button class="tb" onclick="sw('goals')">目標</button>
+  <button class="tb active" onclick="sw('today')">TODAY</button>
+  <button class="tb" onclick="sw('calendar')">RECORD</button>
+  <button class="tb" onclick="sw('goals')">GOALS</button>
   <button class="tb" onclick="sw('boss')">BOSS</button>
 </div>
 
@@ -169,7 +209,7 @@ body{padding:8px}
       </div>
       <div class="hero-stats">
         <div class="hero-name-row">
-          <span class="hero-name">haMB</span>
+          <span class="hero-name">はむこばのhamちゃん</span>
           <span class="hero-lv" id="hero-lv">LV. 1</span>
         </div>
         <div class="srow">
@@ -183,7 +223,7 @@ body{padding:8px}
           <div class="sval" id="t-mp">60</div>
         </div>
         <div class="srow">
-          <div class="slbl">EXP</div>
+          <div class="slbl">本日</div>
           <div class="bbg"><div class="bf bex" id="b-exp" style="width:0%"></div></div>
           <div class="sval" id="t-exp">0/5</div>
         </div>
@@ -191,6 +231,7 @@ body{padding:8px}
           <span>ちから:<span class="fs-val" id="fs-str">10</span></span>
           <span>まもり:<span class="fs-val" id="fs-def">8</span></span>
           <span>すばやさ:<span class="fs-val" id="fs-agi">12</span></span>
+          <span>🔥連続:<span class="fs-val" id="fs-streak">0</span>日</span>
         </div>
       </div>
     </div>
@@ -199,25 +240,32 @@ body{padding:8px}
       <input class="ri" style="flex:1;width:0;min-width:50px" type="number" id="i-mp" placeholder="MP" min="0" max="100">
       <button class="rbtn ok" style="flex:1.5;white-space:nowrap;padding:6px 2px" onclick="setStatus()">朝の記録</button>
     </div>
+    <button class="rbtn" style="width:100%;margin-top:5px;font-size:10px" onclick="openSurvey()">🔮 HP/MP診断</button>
     <div class="rulehint">MPが30未満だと運動以外ロック。運動するとMP回復＋HP消費</div>
   </div>
 
   <div id="lock-area"></div>
   <div id="modal-area"></div>
+  <div id="survey-area"></div>
 
   <div class="panel">
-    <div class="ptl">▼ メインクエスト</div>
+    <div class="ptl">▼ クエスト</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button class="rbtn qcat-tab active" id="qcat-main-btn" onclick="switchQCat('main')" style="flex:1">⚔ メインクエスト</button>
+      <button class="rbtn qcat-tab" id="qcat-sub-btn" onclick="switchQCat('sub')" style="flex:1">📋 サブクエスト</button>
+    </div>
     <div class="qgrid" id="qgrid-main"></div>
-  </div>
-
-  <div class="panel">
-    <div class="ptl">▼ サブクエスト</div>
-    <div class="qgrid" id="qgrid-sub"></div>
+    <div class="qgrid" id="qgrid-sub" style="display:none"></div>
   </div>
 
   <div class="panel">
     <div class="ptl">▼ 本日の記録</div>
     <div id="rec-list"><div style="font-size:9px;color:#4a3a6a">クエストをこなして記録しよう</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="ptl">▼ 宿屋</div>
+    <div id="inn-area"></div>
   </div>
 </div>
 
@@ -247,13 +295,15 @@ body{padding:8px}
 <div id="s-goals" class="scr">
   <div class="panel">
     <div class="ptl">▼ 今週の目標</div>
+    <div id="wk-lock"></div>
     <div id="wk-inp"></div>
-    <button class="rbtn ok" onclick="saveWk()">▶ 今週の目標を決定</button>
+    <button class="rbtn ok" id="wk-save-btn" onclick="saveWk()">▶ 今週の目標を決定</button>
   </div>
   <div class="panel">
-    <div class="ptl">▼ 今月の目標</div>
+    <div class="ptl" id="mo-ptl">▼ 今月の目標</div>
+    <div id="mo-lock"></div>
     <div id="mo-inp"></div>
-    <button class="rbtn ok" onclick="saveMo()">▶ 今月の目標を決定</button>
+    <button class="rbtn ok" id="mo-save-btn" onclick="saveMo()">▶ 今月の目標を決定</button>
   </div>
 </div>
 
@@ -271,6 +321,7 @@ body{padding:8px}
 
 <div class="msg-box"><span id="msg-txt"></span><span class="cur"></span></div>
 </div></div>
+<div id="mission-area"></div>
 
 <script>
 const MP_THRESHOLD=30;
@@ -322,7 +373,7 @@ const QUESTS=[
    subs:[
      {id:'create',name:'創作・開発',icon:'🎨',fields:[{k:'min',l:'時間分'}]},
      {id:'game',name:'ゲーム・読書',icon:'🕹️',fields:[{k:'min',l:'時間分'}]},
-     {id:'movie',name:'映画・アニメ',icon:'🎬',fields:[{k:'count',l:'本数'}]},
+     {id:'bike',name:'バイク・自転車いじり',icon:'🔧',fields:[{k:'content',l:'内容'},{k:'min',l:'時間分'}]},
    ]},
   {id:'family',name:'家族',icon:'👪',color:'#f0a060',category:'sub',
    subs:[
@@ -378,6 +429,10 @@ if(!D.mo)D.mo={};
 if(!D.boss)D.boss=[];
 if(!D.nodrink)D.nodrink={};
 if(!D.subRec)D.subRec={};
+if(!D.surveyDone)D.surveyDone={};
+if(!D.innDone)D.innDone={};
+if(!D.weeklyMissionShown)D.weeklyMissionShown={};
+if(!D.monthlyMissionShown)D.monthlyMissionShown={};
 function sv(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}}
 
 function getLocalDateString(date) {
@@ -593,6 +648,14 @@ function sw(t){
   if(t==='boss')renderBoss();
 }
 
+function getInnTotal(){return Object.keys(D.innDone).filter(d=>D.innDone[d]).length;}
+function getInnStreak(){
+  let d=new Date(TODAY);
+  if(!D.innDone[dk(d)])d.setDate(d.getDate()-1);
+  let s=0;
+  while(D.innDone[dk(d)]){s++;d.setDate(d.getDate()-1);}
+  return s;
+}
 function getLevel(){
   const tot=QUESTS.filter(q=>q.special!=='nodrink').reduce((s,q)=>{
     return s+Object.keys(D.subRec).filter(day=>{
@@ -600,8 +663,10 @@ function getLevel(){
       return r&&Object.values(r).some(x=>x&&x._done);
     }).length;
   },0)+Object.values(D.nodrink).filter(v=>v==='yes').length;
-  const lv=1+Math.floor(tot/5);
-  return{lv,exp:tot%5,toNext:5-(tot%5),tot};
+  const lv=1+getInnTotal();
+  const todayDone=QUESTS.filter(q=>questDone(q.id)).length;
+  const todayTotal=QUESTS.length;
+  return{lv,tot,todayDone,todayTotal};
 }
 function isLocked(){return(D.status[TDK]||{mp:60}).mp<MP_THRESHOLD;}
 function questDone(qid){
@@ -616,19 +681,19 @@ function subDoneNames(qid){
 }
 
 function renderHero(){
-  const{lv,exp,toNext,tot}=getLevel();
+  const{lv,tot,todayDone,todayTotal}=getLevel();
   const st=D.status[TDK]||{hp:80,mp:60};
   document.getElementById('b-hp').style.width=st.hp+'%';
   document.getElementById('t-hp').textContent=Math.round(st.hp);
   document.getElementById('b-mp').style.width=st.mp+'%';
   document.getElementById('t-mp').textContent=Math.round(st.mp);
-  document.getElementById('b-exp').style.width=Math.round(exp/5*100)+'%';
-  document.getElementById('t-exp').textContent=exp+'/5';
+  document.getElementById('b-exp').style.width=Math.round(todayDone/todayTotal*100)+'%';
+  document.getElementById('t-exp').textContent=todayDone+'/'+todayTotal;
   document.getElementById('lock-area').innerHTML=isLocked()?`<div class="lock-banner">⚠ MP不足！運動以外ロック中。運動でMPを回復しよう</div>`:'';
-  
+
   // レベル表示の更新
   document.getElementById('hero-lv').textContent='LV. ' + lv;
-  
+
   // フレーバーステータスの更新
   const str = 10 + lv * 3 + Math.floor(tot / 2);
   const def = 8 + lv * 2 + Math.floor(tot / 3);
@@ -636,6 +701,8 @@ function renderHero(){
   document.getElementById('fs-str').textContent = str;
   document.getElementById('fs-def').textContent = def;
   document.getElementById('fs-agi').textContent = agi;
+  const streakEl=document.getElementById('fs-streak');
+  if(streakEl)streakEl.textContent=getInnStreak();
 }
 function setStatus(){
   Sound.play('confirm');
@@ -648,6 +715,135 @@ function setStatus(){
   showMsg('朝のステータス記録！HP:'+st.hp+' MP:'+st.mp+(st.mp<MP_THRESHOLD?' → MP不足、まず運動しよう！':' → 今日も冒険開始だ！'));
 }
 
+function renderInn(){
+  const done=!!D.innDone[TDK];
+  const el=document.getElementById('inn-area');
+  if(!el)return;
+  if(done){
+    el.innerHTML=`<div style="text-align:center;padding:6px">
+      <div style="font-size:11px;color:#80d040;margin-bottom:4px">✓ 本日は宿屋で休んだ</div>
+      <div style="font-size:10px;color:#f0c040">🔥 ${getInnStreak()}日連続で頑張っています！</div>
+    </div>`;
+  }else{
+    el.innerHTML=`<button class="rbtn ok" style="width:100%;font-size:13px;padding:10px" onclick="returnToInn()">🏠 宿屋へ戻る（今日を終える）</button>
+    <div style="font-size:9px;color:#6a5a4a;margin-top:5px;text-align:center">1日の打ち込みが終わったら押そう。LVが1上がります</div>`;
+  }
+}
+function returnToInn(){
+  if(D.innDone[TDK])return;
+  Sound.play('confirm');
+  D.innDone[TDK]=true;
+  sv();
+  const streak=getInnStreak();
+  showMsg('宿屋で休んだ！LVが上がった！🔥'+streak+'日連続だ！');
+  setTimeout(()=>Sound.play('levelUp'),300);
+  renderHero();renderGrid();renderInn();
+}
+
+const SURVEY=[
+  {id:'sleep',q:'😴 ゆうべの睡眠は？',opts:[
+    {l:'4時間未満',hp:-20,mp:-15},
+    {l:'4〜6時間',hp:-8,mp:-5},
+    {l:'6〜8時間',hp:8,mp:8},
+    {l:'8時間以上',hp:15,mp:12},
+  ]},
+  {id:'body',q:'💪 体の調子は？',opts:[
+    {l:'絶好調',hp:20,mp:5},
+    {l:'普通',hp:5,mp:0},
+    {l:'だるい',hp:-10,mp:-5},
+    {l:'痛み・不調あり',hp:-25,mp:-10},
+  ]},
+  {id:'mood',q:'🔥 気分・やる気は？',opts:[
+    {l:'燃えている',hp:5,mp:20},
+    {l:'普通',hp:0,mp:5},
+    {l:'ちょっと低め',hp:-5,mp:-10},
+    {l:'まったく無い',hp:-10,mp:-25},
+  ]},
+  {id:'stress',q:'😣 ストレス・不安は？',opts:[
+    {l:'なし',hp:5,mp:15},
+    {l:'少しある',hp:0,mp:0},
+    {l:'かなりある',hp:-15,mp:-20},
+  ]},
+  {id:'alcohol',q:'🍺 前日の飲酒量は？',opts:[
+    {l:'多い',hp:-20,mp:0},
+    {l:'普通',hp:-8,mp:0},
+    {l:'少ない（飲んでいない含む）',hp:0,mp:0},
+  ]},
+];
+const SURVEY_BASE_HP=50,SURVEY_BASE_MP=40;
+let surveyAnswers={};
+
+function openSurvey(){
+  Sound.play('select');
+  surveyAnswers={};
+  renderSurveyModal();
+}
+function renderSurveyModal(){
+  const allAnswered=SURVEY.every(q=>surveyAnswers[q.id]!=null);
+  const answered=SURVEY.filter(q=>surveyAnswers[q.id]!=null).length;
+  const total=SURVEY.length;
+  const progress=answered/total;
+  const glow=Math.round(6+progress*34);
+  const scale=(1+progress*0.12).toFixed(2);
+  const boxShadow=progress>0?`box-shadow:0 0 ${glow}px ${Math.round(glow/2)}px rgba(240,192,64,${(0.25+progress*0.55).toFixed(2)});`:'';
+  const brightness=(1+progress*0.25).toFixed(2);
+  const saturate=(1+progress*0.3).toFixed(2);
+  document.getElementById('survey-area').innerHTML=`<div class="modal-bg">
+    <div class="mttl">🌅 今日の調子アンケート</div>
+    <div class="survey-hero-wrap">
+      <div class="survey-hero-box${progress>0?' charging':''}" style="transform:scale(${scale});${boxShadow}">
+        <img class="survey-hero-img" src="リアル勇者.png" alt="リアル勇者" style="filter:brightness(${brightness}) saturate(${saturate})">
+      </div>
+      <div class="survey-charge-bar"><div class="survey-charge-fill" style="width:${Math.round(progress*100)}%"></div></div>
+      <div class="survey-charge-txt">POWER ${answered}/${total}${progress>=1?' ★満タン！':''}</div>
+    </div>
+    ${SURVEY.map(q=>`
+      <div style="margin-bottom:6px">
+        <div style="font-size:11px;color:#a0c8f0;margin-bottom:4px">${q.q}</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          ${q.opts.map((o,i)=>`<button class="rbtn${surveyAnswers[q.id]===i?' ok':''}" style="width:100%;text-align:left;font-size:10px;padding:6px 8px" onclick="selectSurvey('${q.id}',${i})">${surveyAnswers[q.id]===i?'▶ ':''}${o.l}</button>`).join('')}
+        </div>
+      </div>`).join('')}
+    <div style="display:flex;gap:8px;width:100%">
+      <button class="rbtn ok" style="flex:1${allAnswered?'':';opacity:.35;cursor:not-allowed'}"${allAnswered?'':' disabled'} onclick="finishSurvey()">▶ 診断結果を見る</button>
+      <button class="rbtn cl" style="flex:1;margin-left:0" onclick="skipSurvey()">✕ 手動で入力する</button>
+    </div>
+  </div>`;
+}
+function selectSurvey(id,i){
+  Sound.play('select');
+  surveyAnswers[id]=i;
+  renderSurveyModal();
+}
+function skipSurvey(){
+  Sound.play('cancel');
+  D.surveyDone[TDK]=true;sv();
+  document.getElementById('survey-area').innerHTML='';
+}
+function finishSurvey(){
+  if(!SURVEY.every(q=>surveyAnswers[q.id]!=null))return;
+  Sound.play('confirm');
+  let hp=SURVEY_BASE_HP,mp=SURVEY_BASE_MP;
+  SURVEY.forEach(q=>{const o=q.opts[surveyAnswers[q.id]];hp+=o.hp;mp+=o.mp;});
+  hp=clamp(hp);mp=clamp(mp);
+  D.status[TDK]={hp,mp};
+  D.surveyDone[TDK]=true;
+  sv();
+  document.getElementById('survey-area').innerHTML='';
+  document.getElementById('i-hp').value=hp;
+  document.getElementById('i-mp').value=mp;
+  renderHero();renderGrid();
+  showMsg('診断結果！HP:'+hp+' MP:'+mp+(mp<MP_THRESHOLD?' → MP不足、まず運動から始めよう！':' → 今日も一日頑張ろう！'));
+  setTimeout(()=>Sound.play('heal'),200);
+}
+
+function switchQCat(cat){
+  Sound.play('select');
+  document.getElementById('qgrid-main').style.display=cat==='main'?'':'none';
+  document.getElementById('qgrid-sub').style.display=cat==='sub'?'':'none';
+  document.getElementById('qcat-main-btn').classList.toggle('active',cat==='main');
+  document.getElementById('qcat-sub-btn').classList.toggle('active',cat==='sub');
+}
 function renderGrid(){
   const gMain=document.getElementById('qgrid-main');
   const gSub=document.getElementById('qgrid-sub');
@@ -683,13 +879,14 @@ function openModal(qid){
   const q=QUESTS.find(x=>x.id===qid);
   const rec=D.subRec[TDK][qid]||{};
   const isEx=q.special==='exercise';
-  document.getElementById('modal-area').innerHTML=`<div class="modal-bg">
+  document.body.style.overflow='hidden';
+  document.getElementById('modal-area').innerHTML=`<div class="modal-overlay" id="modal-overlay" onclick="if(event.target.id==='modal-overlay')closeModal(false)"><div class="modal-bg">
     <div class="mttl">【${q.icon} ${q.name}】アクション</div>
     <div class="si-container">
       ${q.subs.map(s=>{
         const sr=rec[s.id]||{};const done=!!sr._done;
         return`<div class="si${done?' done':''}">
-          <div class="sck${done?' done':''}" onclick="toggleSub('${qid}','${s.id}')">${done?'✓':''}</div>
+          <div class="sck${done?' done':''}" onclick="toggleSub('${qid}','${s.id}')">${done?'✓ 完了！':'未完了'}</div>
           <div style="flex:1">
             <div class="sname">${s.icon} ${s.name}</div>
             ${isEx?`<div class="exmp">MP+${s.mp} / HP${s.hp}</div>`:''}
@@ -704,19 +901,20 @@ function openModal(qid){
       <button class="rbtn ok" style="flex:1" onclick="closeModal(true)">▶ 記録して閉じる</button>
       <button class="rbtn cl" style="flex:1;margin-left:0" onclick="closeModal(false)">✕ 閉じる</button>
     </div>
-  </div>`;
+  </div></div>`;
   showMsg(q.name+'のアクションを記録しよう！');
 }
 function renderNodrinkModal(){
   const ans=D.nodrink[TDK];
-  document.getElementById('modal-area').innerHTML=`<div class="modal-bg">
+  document.body.style.overflow='hidden';
+  document.getElementById('modal-area').innerHTML=`<div class="modal-overlay" id="modal-overlay" onclick="if(event.target.id==='modal-overlay')closeModal(false)"><div class="modal-bg">
     <div class="mttl">【🚫 禁酒】今日はどうする？</div>
     <div style="display:flex;gap:6px;margin-bottom:7px">
       <button class="ybtn yes${ans==='yes'?' sel':''}" onclick="setNodrink('yes')">✓ 禁酒する</button>
       <button class="ybtn no${ans==='no'?' sel':''}" onclick="setNodrink('no')">✕ 飲む</button>
     </div>
     <button class="rbtn cl" onclick="closeModal(false)">✕ 閉じる</button>
-  </div>`;
+  </div></div>`;
 }
 function setNodrink(val){
   Sound.play('confirm');
@@ -743,9 +941,7 @@ function toggleSub(qid,sid){
   const q=QUESTS.find(x=>x.id===qid);
   const s=q.subs.find(x=>x.id===sid);
   let msg='';
-  
-  const lvBefore = getLevel().lv;
-  
+
   if(isDone){
     Sound.play('confirm');
     const r=D.subRec[TDK][qid][sid];
@@ -777,12 +973,6 @@ function toggleSub(qid,sid){
     }
   }
   
-  const lvAfter = getLevel().lv;
-  if(lvAfter > lvBefore) {
-    msg += ` ★レベルアップ！ LV.${lvBefore} → LV.${lvAfter}！`;
-    setTimeout(() => Sound.play('levelUp'), 400);
-  }
-  
   sv();openModal(qid);renderGrid();renderHero();renderSummary();
   showMsg(msg||'更新した');
 }
@@ -799,6 +989,7 @@ function closeModal(doSave){
     Sound.play('cancel');
   }
   document.getElementById('modal-area').innerHTML='';activeQ=null;
+  document.body.style.overflow='';
 }
 function renderSummary(){
   const rows=[];
@@ -881,26 +1072,99 @@ function renderCalStats(){
 
 function getWkKey(){const d=new Date(TODAY);d.setDate(d.getDate()-d.getDay());return dk(d);}
 function getMoKey(){return TODAY.getFullYear()+'-'+(TODAY.getMonth()+1);}
+function getNextMoKey(){const d=new Date(TODAY.getFullYear(),TODAY.getMonth()+1,1);return d.getFullYear()+'-'+(d.getMonth()+1);}
 function getQuestWeekCount(qid){const d=new Date(TODAY);d.setDate(d.getDate()-d.getDay());let c=0;for(let i=0;i<7;i++){const dd=new Date(d);dd.setDate(d.getDate()+i);const r=D.subRec[dk(dd)]?.[qid];if(r&&Object.values(r).some(s=>s&&s._done))c++;}return c;}
 function getQuestMonthCount(qid){let c=0;const y=TODAY.getFullYear(),m=TODAY.getMonth();for(let i=1;i<=31;i++){const d=new Date(y,m,i);if(d.getMonth()!==m)break;const r=D.subRec[dk(d)]?.[qid];if(r&&Object.values(r).some(s=>s&&s._done))c++;}return c;}
 function getQuestTotalCount(qid){let c=0;Object.keys(D.subRec).forEach(d=>{const r=D.subRec[d]?.[qid];if(r&&Object.values(r).some(s=>s&&s._done))c++;});return c;}
 
-function renderGoalInputs(){
-  const wk=getWkKey(),mk=getMoKey();
-  const qs=QUESTS.filter(q=>q.special!=='nodrink');
-  document.getElementById('wk-inp').innerHTML=qs.map(q=>`<div class="gr">
-    <div class="glbl">${q.icon}${q.name}</div><input class="ri" type="number" id="wk-${q.id}" value="${(D.wk[wk]||{})[q.id]||''}" placeholder="0">
-    <div class="gunit">回/週</div><div class="gprog">今週${getQuestWeekCount(q.id)}回</div></div>`).join('')+
-    `<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" id="wk-nodrink" value="${(D.wk[wk]||{}).nodrink||''}" placeholder="0">
-    <div class="gunit">日/週</div><div class="gprog">今週${getAbsWeek()}日</div></div>`;
-  document.getElementById('mo-inp').innerHTML=qs.map(q=>`<div class="gr">
-    <div class="glbl">${q.icon}${q.name}</div><input class="ri" type="number" id="mo-${q.id}" value="${(D.mo[mk]||{})[q.id]||''}" placeholder="0">
-    <div class="gunit">回/月</div><div class="gprog">今月${getQuestMonthCount(q.id)}回</div></div>`).join('')+
-    `<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" id="mo-nodrink" value="${(D.mo[mk]||{}).nodrink||''}" placeholder="0">
-    <div class="gunit">日/月</div><div class="gprog">今月${getAbsMonth()}日</div></div>`;
+function isGoalDayWeek(){return TODAY.getDay()===0;}
+function isGoalDayMonth(){const last=new Date(TODAY.getFullYear(),TODAY.getMonth()+1,0).getDate();return TODAY.getDate()===last;}
+function nextSundayLabel(){
+  const d=new Date(TODAY);
+  d.setDate(d.getDate()+(7-d.getDay()));
+  return(d.getMonth()+1)+'/'+d.getDate();
 }
-function saveWk(){Sound.play('confirm');const wk=getWkKey();if(!D.wk[wk])D.wk[wk]={};QUESTS.filter(q=>q.special!=='nodrink').forEach(q=>{D.wk[wk][q.id]=parseInt(document.getElementById('wk-'+q.id).value)||0;});D.wk[wk].nodrink=parseInt(document.getElementById('wk-nodrink').value)||0;sv();showMsg('今週の目標を決定した！');}
-function saveMo(){Sound.play('confirm');const mk=getMoKey();if(!D.mo[mk])D.mo[mk]={};QUESTS.filter(q=>q.special!=='nodrink').forEach(q=>{D.mo[mk][q.id]=parseInt(document.getElementById('mo-'+q.id).value)||0;});D.mo[mk].nodrink=parseInt(document.getElementById('mo-nodrink').value)||0;sv();showMsg('今月の目標を決定した！');}
+function monthEndLabel(){
+  const last=new Date(TODAY.getFullYear(),TODAY.getMonth()+1,0);
+  return(last.getMonth()+1)+'/'+last.getDate();
+}
+function showMissionBanner(type){
+  const isWeekly=type==='weekly';
+  Sound.play('levelUp');
+  document.getElementById('mission-area').innerHTML=`
+    <div class="mission-flash"></div>
+    <div class="mission-overlay" onclick="closeMissionBanner('${type}',false)">
+      <div class="mission-card">
+        <div class="mission-title${isWeekly?'':' monthly'}">【${isWeekly?'Weekly Mission!!':'Monthly Mission!!'}】</div>
+        <div class="mission-sub">${isWeekly?'来週の目標を設定せよ！！':'来月の目標を設定せよ！！'}</div>
+        <button class="mission-btn" onclick="event.stopPropagation();closeMissionBanner('${type}',true)">▶ 目標を設定する</button>
+      </div>
+    </div>`;
+}
+function closeMissionBanner(type,goToGoals){
+  Sound.play('confirm');
+  if(type==='weekly')D.weeklyMissionShown[TDK]=true;
+  else D.monthlyMissionShown[TDK]=true;
+  sv();
+  document.getElementById('mission-area').innerHTML='';
+  if(goToGoals)sw('goals');
+  checkMissionQueue();
+}
+function checkMissionQueue(){
+  if(isGoalDayWeek()&&!D.weeklyMissionShown[TDK]){showMissionBanner('weekly');return;}
+  if(isGoalDayMonth()&&!D.monthlyMissionShown[TDK]){showMissionBanner('monthly');return;}
+}
+function goalRowHtml(prefix,id,icon,name,target,actual,unit,locked){
+  const t=target||0;
+  const pct=t>0?Math.min(100,Math.round(actual/t*100)):0;
+  const achieved=t>0&&actual>=t;
+  return`<div class="grow${achieved?' achieved':''}">
+    <div class="gr">
+      <div class="glbl">${icon}${name}</div>
+      <input class="ri" type="number" id="${prefix}-${id}" value="${target||''}" placeholder="0"${locked?' disabled':''}>
+      <div class="gunit">${unit}</div>
+      <div class="gprog">${achieved?'★達成！':''}</div>
+    </div>
+    <div class="gr-bar-wrap">
+      <div class="bbg"><div class="bf gr-bar-fill" style="width:${pct}%"></div></div>
+      <div class="gr-bar-txt">${t>0?actual+'/'+t+'（'+pct+'%）':'実績'+actual}</div>
+    </div>
+  </div>`;
+}
+function renderGoalInputs(){
+  const wk=getWkKey();
+  const qs=QUESTS.filter(q=>q.special!=='nodrink');
+  const wkG=D.wk[wk]||{};
+  const wkLocked=!isGoalDayWeek(),moLocked=!isGoalDayMonth();
+  const moKeyToUse=moLocked?getMoKey():getNextMoKey();
+  const moG=D.mo[moKeyToUse]||{};
+
+  document.getElementById('wk-lock').innerHTML=wkLocked
+    ?`<div class="lock-banner">🔒 週間目標は毎週日曜日だけ設定できます。次回:${nextSundayLabel()}</div>`
+    :`<div class="rulehint">📅 今日は日曜日！今週の目標を決めよう</div>`;
+  document.getElementById('mo-lock').innerHTML=moLocked
+    ?`<div class="lock-banner">🔒 月間目標は毎月月末だけ設定できます。次回:${monthEndLabel()}</div>`
+    :`<div class="rulehint">📅 今日は月末！来月に向けた目標を決めよう</div>`;
+  document.getElementById('mo-ptl').textContent=moLocked?'▼ 今月の目標':'▼ 来月の目標';
+
+  document.getElementById('wk-inp').innerHTML=
+    qs.map(q=>goalRowHtml('wk',q.id,q.icon,q.name,wkG[q.id],getQuestWeekCount(q.id),'回/週',wkLocked)).join('')+
+    goalRowHtml('wk','nodrink','🚫','禁酒',wkG.nodrink,getAbsWeek(),'日/週',wkLocked);
+  document.getElementById('mo-inp').innerHTML=
+    qs.map(q=>goalRowHtml('mo',q.id,q.icon,q.name,moG[q.id],moLocked?getQuestMonthCount(q.id):0,'回/月',moLocked)).join('')+
+    goalRowHtml('mo','nodrink','🚫','禁酒',moG.nodrink,moLocked?getAbsMonth():0,'日/月',moLocked);
+
+  const wkBtn=document.getElementById('wk-save-btn');
+  wkBtn.disabled=wkLocked;
+  wkBtn.style.opacity=wkLocked?'.35':'1';
+  wkBtn.style.cursor=wkLocked?'not-allowed':'pointer';
+  const moBtn=document.getElementById('mo-save-btn');
+  moBtn.disabled=moLocked;
+  moBtn.style.opacity=moLocked?'.35':'1';
+  moBtn.style.cursor=moLocked?'not-allowed':'pointer';
+}
+function saveWk(){if(!isGoalDayWeek()){showMsg('週間目標は日曜日だけ設定できる！');return;}Sound.play('confirm');const wk=getWkKey();if(!D.wk[wk])D.wk[wk]={};QUESTS.filter(q=>q.special!=='nodrink').forEach(q=>{D.wk[wk][q.id]=parseInt(document.getElementById('wk-'+q.id).value)||0;});D.wk[wk].nodrink=parseInt(document.getElementById('wk-nodrink').value)||0;sv();showMsg('今週の目標を決定した！');}
+function saveMo(){if(!isGoalDayMonth()){showMsg('月間目標は月末だけ設定できる！');return;}Sound.play('confirm');const mk=getNextMoKey();if(!D.mo[mk])D.mo[mk]={};QUESTS.filter(q=>q.special!=='nodrink').forEach(q=>{D.mo[mk][q.id]=parseInt(document.getElementById('mo-'+q.id).value)||0;});D.mo[mk].nodrink=parseInt(document.getElementById('mo-nodrink').value)||0;sv();showMsg('来月の目標を決定した！');}
 
 function renderBoss(){
   const existing=D.boss.length?D.boss:[{name:'',type:'旅行'},{name:'',type:'出版'},{name:'',type:'その他'}];
@@ -914,12 +1178,12 @@ function renderBoss(){
     `<button class="rbtn" onclick="addBossRow();Sound.play('select')" style="font-size:10px">+ BOSSを追加</button>`;
   
   const{tot,lv}=getLevel();
-  const bossImages = ['boss_slime.png', 'boss_dragon.png', 'boss_demon.png'];
-  
+  const bossImages = ['boss_slime.png', 'boss_dragon.png', 'boss_demon.png', 'boss_KEN.png', 'boss_goremu.png', 'boss_kumo.png', 'boss_tree.png', 'boss_youkai.png'];
+
   document.getElementById('boss-status').innerHTML=D.boss.filter(g=>g.name).map((g,i)=>{
     const pwr=Math.min(100,Math.round(tot/(30*(i+1))*100));
     const isDefeated = pwr >= 100;
-    const imgFile = bossImages[i] || 'boss_demon.png';
+    const imgFile = bossImages[i % bossImages.length];
     const hp = 100 - pwr;
     
     return`
@@ -1105,9 +1369,15 @@ function renderStatusChart() {
   });
 }
 
-renderHero();renderGrid();renderSummary();
+renderHero();renderGrid();renderSummary();renderInn();
 updateMuteButton();
-showMsg('勇者よ！MPが低ければまず運動だ！運動でMPを回復させ、他のクエストを解放しよう！');
+if(!D.surveyDone[TDK]){
+  showMsg('おはよう、勇者よ！まずは今日の調子を教えてくれ！');
+  renderSurveyModal();
+}else{
+  showMsg('勇者よ！MPが低ければまず運動だ！運動でMPを回復させ、他のクエストを解放しよう！');
+}
+checkMissionQueue();
 </script>
 </body>
 </html>
