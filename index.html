@@ -890,9 +890,12 @@ function openModal(qid){
           <div style="flex:1">
             <div class="sname">${s.icon} ${s.name}</div>
             ${isEx?`<div class="exmp">MP+${s.mp} / HP${s.hp}</div>`:''}
-            <div class="fields">${s.fields.map(f=>`<div class="fld"><label>${f.l}</label>
-              <input class="ri" style="width:58px" type="text" id="f-${s.id}-${f.k}" value="${sr[f.k]||''}" placeholder="0"
-                onclick="event.stopPropagation()" onchange="saveF('${qid}','${s.id}','${f.k}',this.value)"></div>`).join('')}</div>
+            <div class="fields">${s.fields.map(f=>{
+              const ftype=f.k==='content'?'text':(f.l==='起床時間'?'time':'number');
+              return`<div class="fld"><label>${f.l}</label>
+              <input class="ri" style="width:58px" type="${ftype}" inputmode="${ftype==='number'?'decimal':'text'}" id="f-${s.id}-${f.k}" value="${sr[f.k]||''}" placeholder="${ftype==='number'?'0':''}"
+                onclick="event.stopPropagation()" onchange="saveF('${qid}','${s.id}','${f.k}',this.value)"></div>`;
+            }).join('')}</div>
           </div>
         </div>`;
       }).join('')}
