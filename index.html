@@ -26,6 +26,8 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
 .hero-name-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
 .hero-name{font-size:12px;color:#f0e6c8}
 .hero-lv{font-size:12px;color:#f0c040}
+.tc-btn{width:30px;height:30px;background:#1a0a2e;border:1px solid #8b6914;color:#f0c040;font-size:12px;cursor:pointer;font-family:'DotGothic16',monospace;padding:0}
+.tc-btn:active{background:#2a2000}
 .srow{display:flex;align-items:center;gap:5px;margin-bottom:4px}
 .slbl{font-size:10px;width:26px;color:#a0c8f0}
 .bbg{flex:1;height:11px;background:#1a0a2e;border:1px solid #4a3a6a}
@@ -1684,11 +1686,26 @@ function switchBossTab(tab){
     renderBossStatus();
   }
 }
+function targetCap(dl){var d=getDaysLeft(dl);return d!==null&&d>0?d:null;}
+function capLabel(dl){var c=targetCap(dl);return c?'回（上限 '+c+'回＝期限までの日数）':'回（期限を入れると上限が決まる）';}
+function clampTarget(i){
+  var el=document.getElementById('bt-'+i);if(!el)return;
+  var dl=(document.getElementById('bd-'+i)||{}).value,cap=targetCap(dl);
+  var v=parseInt(el.value);if(isNaN(v)||v<1)v=1;if(cap&&v>cap){v=cap;showMsg('目標回数は期限までの日数（'+cap+'回）が上限だよ');}
+  el.value=v;if(D.bosses[i])D.bosses[i].targetCount=v;
+}
+function stepTarget(i,d){
+  var el=document.getElementById('bt-'+i);if(!el)return;
+  var v=(parseInt(el.value)||0)+d;el.value=v;clampTarget(i);
+}
 function updateDaysLeft(idx,val){
   const el=document.getElementById('days-left-'+idx);
   if(!el)return;
+  var capEl=document.getElementById('tc-cap-'+idx);if(capEl)capEl.textContent=capLabel(val);
+  var cap=targetCap(val),bt=document.getElementById('bt-'+idx);
+  if(cap&&bt){bt.value=cap;if(D.bosses[idx])D.bosses[idx].targetCount=cap;}
   if(!val){el.textContent='';return;}
-  const days=Math.ceil((new Date(val)-new Date())/86400000);
+  const days=getDaysLeft(val);
   el.textContent=days>0?'あと'+days+'日':days===0?'本日期限！':'期限超過';
   el.style.color=days<=7?'#e04040':days<=30?'#f0c040':'#80d040';
 }
@@ -1707,8 +1724,8 @@ function renderBossForm(){
       h+='<div class="chk-item" onclick="toggleLink('+i+',\''+q.id+'\')" ><div class="chk-box'+(b.linked.includes(q.id)?' on':'')+'" id="chk-'+i+'-'+q.id+'">'+(b.linked.includes(q.id)?'✓':'')+'</div>'+q.icon+q.name+'</div>';
     });
     h+='</div></div>';
-    h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px"><div style="font-size:10px;color:#a0c8f0;width:60px">達成期限</div><input class="ri" type="date" id="bd-'+i+'" value="'+(b.deadline||'')+'" style="width:130px" oninput="updateDaysLeft('+i+',this.value)"><span id="days-left-'+i+'" style="font-size:10px;color:#f0c040">'+(b.deadline?'あと'+Math.max(0,Math.ceil((new Date(b.deadline)-new Date())/86400000))+'日':'')+'</span></div>';
-    h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><div style="font-size:10px;color:#a0c8f0;width:60px">目標回数</div><input class="ri" type="number" id="bt-'+i+'" value="'+(b.targetCount||100)+'" style="width:65px"><span style="font-size:9px;color:#6a5a4a">回（討伐力の基準）</span></div></div>';
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px"><div style="font-size:10px;color:#a0c8f0;width:60px">達成期限</div><input class="ri" type="date" id="bd-'+i+'" value="'+(b.deadline||'')+'" style="width:130px" oninput="updateDaysLeft('+i+',this.value)"><span id="days-left-'+i+'" style="font-size:10px;color:#f0c040">'+(b.deadline?'あと'+Math.max(0,getDaysLeft(b.deadline))+'日':'')+'</span></div>';
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><div style="font-size:10px;color:#a0c8f0;width:60px">目標回数</div><button class="tc-btn" onclick="stepTarget('+i+',-1)">▼</button><input class="ri" type="number" inputmode="numeric" id="bt-'+i+'" value="'+(b.targetCount||100)+'" style="width:60px;text-align:center" onchange="clampTarget('+i+')"><button class="tc-btn" onclick="stepTarget('+i+',1)">▲</button><span id="tc-cap-'+i+'" style="font-size:9px;color:#6a5a4a">'+capLabel(b.deadline)+'</span></div></div>';
   });
   document.getElementById('boss-form').innerHTML=h;
 }
