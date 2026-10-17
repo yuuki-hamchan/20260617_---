@@ -304,7 +304,7 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
     </div>
     <div class="cal-wrap">
       <div class="dow-row">
-        <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+        <div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div><div style="color:#e06060">日</div>
         <div style="color:#4080f0;font-size:8px">週計</div>
       </div>
       <div id="cal-body"></div>
@@ -347,9 +347,9 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
 <!-- 目標 -->
 <div id="s-goals" class="scr">
   <div class="panel">
-    <div class="ptl">▼ 今週の目標</div>
+    <div class="ptl" id="wk-goal-ttl">▼ 今週の目標</div>
     <div id="wk-inp"></div>
-    <button class="rbtn ok" onclick="saveWk()">▶ 今週の目標を決定</button>
+    <button class="rbtn ok" id="wk-goal-btn" onclick="saveWk()">▶ 今週の目標を決定</button>
   </div>
   <div class="panel">
     <div class="ptl">▼ 今月の目標</div>
@@ -1169,7 +1169,7 @@ function renderLangStats(){
   var panel=document.getElementById('lang-stats-panel'),el=document.getElementById('lang-stats');if(!panel||!el)return;
   var on=calQ==='language';panel.style.display=on?'block':'none';if(!on)return;
   var y=calView.getFullYear(),m=calView.getMonth(),dim=new Date(y,m+1,0).getDate(),wd=['日','月','火','水','木','金','土'];
-  var wkS=new Date(TODAY);wkS.setDate(TODAY.getDate()-TODAY.getDay());var wkSk=dk(wkS);
+  var wkS=new Date(TODAY);wkS.setDate(TODAY.getDate()-monOff(TODAY));var wkSk=dk(wkS);
   var Z=function(){return{mn:0,pg:0,wd:0};},add=function(a,b){a.mn+=b.mn;a.pg+=b.pg;a.wd+=b.wd;};
   var wk=Z(),mo=Z(),all=Z(),byLang={};
   Object.keys(D.subRec).forEach(function(k){var d=langDay(k);add(all,d);if(k>=wkSk&&k<=TDK)add(wk,d);});
@@ -1323,7 +1323,7 @@ function renderSummary(){
   });
   el.innerHTML=rows.length?rows.join(''):'<div style="font-size:9px;color:#4a3a6a">クエストをこなして記録しよう</div>';
 }
-function getWkGoalCal(qid){const wk=getWkKey();return(D.wk[wk]||{})[qid]||0;}
+function getWkGoalCal(qid){return wkGoals(getWkKey())[qid]||0;}
 function getMoGoalCal(qid){const mk=getMoKey();return(D.mo[mk]||{})[qid]||0;}
 function questDoneDay(qid,dateKey){
   if(qid==='nodrink')return D.nodrink[dateKey]==='yes';
@@ -1354,7 +1354,7 @@ function renderCal(){
   // 色分け：月間達成率(月末時点の累計/目標)で決定
   const moRatio=mg>0?monthTotal/mg:0;
 
-  const first=new Date(cy,cm,1).getDay();
+  const first=(new Date(cy,cm,1).getDay()+6)%7; // 月曜はじまり
   const last=new Date(cy,cm+1,0).getDate();
   let html='';
   let dayNum=1;
@@ -1439,7 +1439,7 @@ function renderReadingStats(){
   var y=calView.getFullYear(),m=calView.getMonth();
   var dim=new Date(y,m+1,0).getDate();
   var wd=['日','月','火','水','木','金','土'];
-  var wkS=new Date(TODAY);wkS.setDate(TODAY.getDate()-TODAY.getDay());var wkSk=dk(wkS),tk=TDK;
+  var wkS=new Date(TODAY);wkS.setDate(TODAY.getDate()-monOff(TODAY));var wkSk=dk(wkS),tk=TDK;
   var mo={pg:0,ch:0,mn:0},wk={pg:0,ch:0,mn:0},all={pg:0,ch:0,mn:0};
   Object.keys(D.subRec).forEach(function(k){var r=readDay(k);
     all.pg+=r.pg;all.ch+=r.ch;all.mn+=r.mn;
@@ -1547,7 +1547,7 @@ function renderMonthSummary(cy,cm,monthTotal,mg,wg,q){
   var pace=daysPassed>0?(monthTotal/daysPassed).toFixed(1):0;
   var neededPace=daysLeft>0&&remain>0?Math.ceil(remain/daysLeft):0;
   var wkDone=0;
-  var wkStart=new Date(TODAY);wkStart.setDate(TODAY.getDate()-TODAY.getDay());
+  var wkStart=new Date(TODAY);wkStart.setDate(TODAY.getDate()-monOff(TODAY));
   for(var i=0;i<7;i++){var d=new Date(wkStart);d.setDate(wkStart.getDate()+i);if(d<=TODAY&&questDoneDay(calQ,dk(d)))wkDone++;}
   var wPct=wg>0?Math.min(100,Math.round(wkDone/wg*100)):0;
   var color=q.color;
@@ -1566,7 +1566,7 @@ function renderMonthSummary(cy,cm,monthTotal,mg,wg,q){
   h+='<div class="sum-card" style="grid-column:1/-1"><div class="sum-name">🏆 累計（全期間）</div><div class="sum-nums"><div class="sum-cur" style="color:#f0c040">'+totAll+unit+'</div><div class="sum-tgt">'+(firstDay?'記録開始 '+firstDay.replace(/-/g,'/'):'まだ記録なし')+'</div></div></div>';
   el.innerHTML=h;
 }
-function getAbsWeek(){const d=new Date(TODAY);d.setDate(d.getDate()-d.getDay());let c=0;for(let i=0;i<7;i++){const dd=new Date(d);dd.setDate(d.getDate()+i);if(D.nodrink[dk(dd)]==='yes')c++;}return c;}
+function getAbsWeek(){const d=new Date(TODAY);d.setDate(d.getDate()-monOff(d));let c=0;for(let i=0;i<7;i++){const dd=new Date(d);dd.setDate(d.getDate()+i);if(D.nodrink[dk(dd)]==='yes')c++;}return c;}
 function getAbsMonth(){let c=0;const y=TODAY.getFullYear(),m=TODAY.getMonth();for(let i=1;i<=31;i++){const d=new Date(y,m,i);if(d.getMonth()!==m)break;if(D.nodrink[dk(d)]==='yes')c++;}return c;}
 function getAbsStreak(){let d=new Date(TODAY);let s=0;while(D.nodrink[dk(d)]==='yes'){s++;d.setDate(d.getDate()-1);}return s;}
 function getTotalAbs(){return Object.values(D.nodrink).filter(v=>v==='yes').length;}
@@ -1578,7 +1578,7 @@ function renderAbsStats(){
   stats.forEach(function(s){h+='<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:60px"><div style="font-size:14px;color:#4080f0">'+s[1]+'</div><div style="font-size:9px;color:#6a5a4a">'+s[0]+'</div></div>';});
   el.innerHTML=h;
 }
-function renderExerciseStats(){var panel=document.getElementById('exercise-stats-panel');var el=document.getElementById('exercise-stats');var el2=document.getElementById('exercise-detail-stats');if(!panel||!el||!el2)return;var isEx=calQ==='exercise';panel.style.display=isEx?'block':'none';if(!isEx)return;var today=new Date();var todayKey=today.getFullYear()+'-'+(today.getMonth()+1).toString().padStart(2,'0')+'-'+today.getDate().toString().padStart(2,'0');var wkStart=new Date(today);wkStart.setDate(today.getDate()-today.getDay());var moKey=today.getFullYear()+'-'+(today.getMonth()+1).toString().padStart(2,'0');var todayCnt=0,wkCnt=0,moCnt=0,totalKm=0,totalMin=0,faceWk=0,faceMo=0,faceAll=0;Object.keys(D.subRec||{}).forEach(function(dk){var exRec=(D.subRec[dk]||{})['exercise']||{};var done=Object.values(exRec).some(function(s){return s&&s._done;});if(!done)return;if(dk===todayKey)todayCnt++;var dDate=new Date(dk+'T00:00:00');if(dDate>=wkStart&&dDate<=today)wkCnt++;if(dk.startsWith(moKey))moCnt++;if(exRec.face&&exRec.face._done){faceAll++;if(dDate>=wkStart&&dDate<=today)faceWk++;if(dk.startsWith(moKey))faceMo++;}['run','other'].forEach(function(sid){var sr=exRec[sid]||{};if(sr.km)totalKm+=parseFloat(sr.km)||0;if(sr.min)totalMin+=parseFloat(sr.min)||0;});['abs','core'].forEach(function(sid){var sr=exRec[sid]||{};if(sr.min)totalMin+=parseFloat(sr.min)||0;});});var stats=[['今日',todayCnt+'回'],['今週',wkCnt+'回'],['今月',moCnt+'回']];var h='';stats.forEach(function(s){h+='<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:60px"><div style="font-size:14px;color:#d04080">'+s[1]+'</div><div style="font-size:9px;color:#6a5a4a">'+s[0]+'</div></div>';});el.innerHTML=h;var h2='';h2+='<div style="display:flex;gap:6px;flex-wrap:wrap">';h2+='<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:80px"><div style="font-size:13px;color:#f0c040">'+totalKm.toFixed(1)+'km</div><div style="font-size:9px;color:#6a5a4a">累計距離</div></div>';h2+='<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:80px"><div style="font-size:13px;color:#f0c040">'+Math.round(totalMin)+'分</div><div style="font-size:9px;color:#6a5a4a">累計時間</div></div>';h2+='</div>';h2+='<div style="font-size:10px;color:#a0c8f0;margin:8px 0 4px">🧖 フェイス実施回数</div><div style="display:flex;gap:6px;flex-wrap:wrap">';[['今週',faceWk],['今月',faceMo],['累計',faceAll]].forEach(function(f){h2+='<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:60px"><div style="font-size:13px;color:#e080c0">'+f[1]+'回</div><div style="font-size:9px;color:#6a5a4a">'+f[0]+'</div></div>';});h2+='</div>';el2.innerHTML=h2;}
+function renderExerciseStats(){var panel=document.getElementById('exercise-stats-panel');var el=document.getElementById('exercise-stats');var el2=document.getElementById('exercise-detail-stats');if(!panel||!el||!el2)return;var isEx=calQ==='exercise';panel.style.display=isEx?'block':'none';if(!isEx)return;var today=new Date();var todayKey=today.getFullYear()+'-'+(today.getMonth()+1).toString().padStart(2,'0')+'-'+today.getDate().toString().padStart(2,'0');var wkStart=new Date(today);wkStart.setDate(today.getDate()-monOff(today));var moKey=today.getFullYear()+'-'+(today.getMonth()+1).toString().padStart(2,'0');var todayCnt=0,wkCnt=0,moCnt=0,totalKm=0,totalMin=0,faceWk=0,faceMo=0,faceAll=0;Object.keys(D.subRec||{}).forEach(function(dk){var exRec=(D.subRec[dk]||{})['exercise']||{};var done=Object.values(exRec).some(function(s){return s&&s._done;});if(!done)return;if(dk===todayKey)todayCnt++;var dDate=new Date(dk+'T00:00:00');if(dDate>=wkStart&&dDate<=today)wkCnt++;if(dk.startsWith(moKey))moCnt++;if(exRec.face&&exRec.face._done){faceAll++;if(dDate>=wkStart&&dDate<=today)faceWk++;if(dk.startsWith(moKey))faceMo++;}['run','other'].forEach(function(sid){var sr=exRec[sid]||{};if(sr.km)totalKm+=parseFloat(sr.km)||0;if(sr.min)totalMin+=parseFloat(sr.min)||0;});['abs','core'].forEach(function(sid){var sr=exRec[sid]||{};if(sr.min)totalMin+=parseFloat(sr.min)||0;});});var stats=[['今日',todayCnt+'回'],['今週',wkCnt+'回'],['今月',moCnt+'回']];var h='';stats.forEach(function(s){h+='<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:60px"><div style="font-size:14px;color:#d04080">'+s[1]+'</div><div style="font-size:9px;color:#6a5a4a">'+s[0]+'</div></div>';});el.innerHTML=h;var h2='';h2+='<div style="display:flex;gap:6px;flex-wrap:wrap">';h2+='<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:80px"><div style="font-size:13px;color:#f0c040">'+totalKm.toFixed(1)+'km</div><div style="font-size:9px;color:#6a5a4a">累計距離</div></div>';h2+='<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:80px"><div style="font-size:13px;color:#f0c040">'+Math.round(totalMin)+'分</div><div style="font-size:9px;color:#6a5a4a">累計時間</div></div>';h2+='</div>';h2+='<div style="font-size:10px;color:#a0c8f0;margin:8px 0 4px">🧖 フェイス実施回数</div><div style="display:flex;gap:6px;flex-wrap:wrap">';[['今週',faceWk],['今月',faceMo],['累計',faceAll]].forEach(function(f){h2+='<div style="flex:1;background:#1a0a2e;border:1px solid #4a3a6a;padding:6px;text-align:center;min-width:60px"><div style="font-size:13px;color:#e080c0">'+f[1]+'回</div><div style="font-size:9px;color:#6a5a4a">'+f[0]+'</div></div>';});h2+='</div>';el2.innerHTML=h2;}
 function showDayDetail(dateKey){
   var rec=D.subRec[dateKey]||{};
   var workRec=rec['work']||{};
@@ -1648,24 +1648,30 @@ function showDayDetail(dateKey){
   h+='</div></div>';
   document.getElementById('overlay-area').insertAdjacentHTML('beforeend',h);
 }
-function getWkKey(){const d=new Date(TODAY);d.setDate(d.getDate()-d.getDay());return dk(d);}
+function monOff(d){return (d.getDay()+6)%7;} // 月曜=0 … 日曜=6
+function getWkKey(){const d=new Date(TODAY);d.setDate(d.getDate()-monOff(d));return dk(d);}
+// 日曜は「来週（明日の月曜から）」の目標を決める日
+function getGoalWkKey(){if(TODAY.getDay()===0){const d=new Date(TODAY);d.setDate(d.getDate()+1);return dk(d);}return getWkKey();}
+function wkGoals(key){if(D.wk[key])return D.wk[key];var p=key.split('-');var d=new Date(+p[0],+p[1]-1,+p[2]-1);return D.wk[dk(d)]||{};} // 旧：日曜はじまりのキーも読む
+function wkRangeLabel(key){var p=key.split('-');var s=new Date(+p[0],+p[1]-1,+p[2]),e=new Date(s);e.setDate(s.getDate()+6);return (s.getMonth()+1)+'/'+s.getDate()+'〜'+(e.getMonth()+1)+'/'+e.getDate();}
 function getMoKey(){return TODAY.getFullYear()+'-'+(TODAY.getMonth()+1);}
-function getQuestWeekCount(qid){const d=new Date(TODAY);d.setDate(d.getDate()-d.getDay());let c=0;for(let i=0;i<7;i++){const dd=new Date(d);dd.setDate(d.getDate()+i);const r=D.subRec[dk(dd)]?.[qid];if(r&&Object.values(r).some(s=>s&&s._done))c++;}return c;}
+function getQuestWeekCount(qid){const d=new Date(TODAY);d.setDate(d.getDate()-monOff(d));let c=0;for(let i=0;i<7;i++){const dd=new Date(d);dd.setDate(d.getDate()+i);const r=D.subRec[dk(dd)]?.[qid];if(r&&Object.values(r).some(s=>s&&s._done))c++;}return c;}
 function getQuestMonthCount(qid){let c=0;const y=TODAY.getFullYear(),m=TODAY.getMonth();for(let i=1;i<=31;i++){const d=new Date(y,m,i);if(d.getMonth()!==m)break;const r=D.subRec[dk(d)]?.[qid];if(r&&Object.values(r).some(s=>s&&s._done))c++;}return c;}
 function renderGoalInputs(){
-  var wk=getWkKey(),mk=getMoKey();
+  var wk=getGoalWkKey(),mk=getMoKey(),wg=wkGoals(wk),isNext=wk!==getWkKey();
+  var tt=document.getElementById('wk-goal-ttl');if(tt)tt.textContent='▼ '+(isNext?'来週':'今週')+'の目標（'+wkRangeLabel(wk)+'）';var tb=document.getElementById('wk-goal-btn');if(tb)tb.textContent='▶ '+(isNext?'来週':'今週')+'の目標を決定';
   var qs=QUESTS.filter(function(q){return q.special!=='nodrink';});
   var wh='',mh='';
   qs.forEach(function(q){
-    wh+='<div class="gr"><div class="glbl">'+q.icon+q.name+'</div><input class="ri" type="number" id="wk-'+q.id+'" value="'+((D.wk[wk]||{})[q.id]||'')+'" placeholder="0"><div class="gcur">今週'+getQuestWeekCount(q.id)+'回</div></div>';
+    wh+='<div class="gr"><div class="glbl">'+q.icon+q.name+'</div><input class="ri" type="number" id="wk-'+q.id+'" value="'+(wg[q.id]||'')+'" placeholder="0"><div class="gcur">今週'+getQuestWeekCount(q.id)+'回</div></div>';
     mh+='<div class="gr"><div class="glbl">'+q.icon+q.name+'</div><input class="ri" type="number" id="mo-'+q.id+'" value="'+((D.mo[mk]||{})[q.id]||'')+'" placeholder="0"><div class="gcur">今月'+getQuestMonthCount(q.id)+'回</div></div>';
   });
-  wh+='<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" id="wk-nodrink" value="'+((D.wk[wk]||{}).nodrink||'')+'" placeholder="0"><div class="gcur">今週'+getAbsWeek()+'日</div></div>';
+  wh+='<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" id="wk-nodrink" value="'+(wg.nodrink||'')+'" placeholder="0"><div class="gcur">今週'+getAbsWeek()+'日</div></div>';
   mh+='<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" id="mo-nodrink" value="'+((D.mo[mk]||{}).nodrink||'')+'" placeholder="0"><div class="gcur">今月'+getAbsMonth()+'日</div></div>';
   document.getElementById('wk-inp').innerHTML=wh;
   document.getElementById('mo-inp').innerHTML=mh;
 }
-function saveWk(){const wk=getWkKey();if(!D.wk[wk])D.wk[wk]={};QUESTS.filter(q=>q.special!=='nodrink').forEach(q=>{D.wk[wk][q.id]=parseInt(document.getElementById('wk-'+q.id).value)||0;});D.wk[wk].nodrink=parseInt(document.getElementById('wk-nodrink').value)||0;sv();showMsg('今週の目標を決定した！');}
+function saveWk(){const wk=getGoalWkKey();if(!D.wk[wk])D.wk[wk]={};QUESTS.filter(q=>q.special!=='nodrink').forEach(q=>{D.wk[wk][q.id]=parseInt(document.getElementById('wk-'+q.id).value)||0;});D.wk[wk].nodrink=parseInt(document.getElementById('wk-nodrink').value)||0;sv();showMsg((wk!==getWkKey()?'来週':'今週')+'（'+wkRangeLabel(wk)+'）の目標を決定した！');}
 function saveMo(){const mk=getMoKey();if(!D.mo[mk])D.mo[mk]={};QUESTS.filter(q=>q.special!=='nodrink').forEach(q=>{D.mo[mk][q.id]=parseInt(document.getElementById('mo-'+q.id).value)||0;});D.mo[mk].nodrink=parseInt(document.getElementById('mo-nodrink').value)||0;sv();showMsg('今月の目標を決定した！');}
 
 // ── BOSS ──
