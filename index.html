@@ -244,7 +244,7 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
 <body>
 <div class="rpg"><div class="rb">
 <div class="ttl" style="position:relative">★ 冒険者 hamちゃん の冒険記録 ★<button id="bk-btn" onclick="openBackup()" title="バックアップ" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;cursor:pointer;padding:2px 4px;line-height:1">💾<span id="bk-dot" style="display:none;position:absolute;top:0;right:0;width:7px;height:7px;border-radius:50%;background:#e0a040"></span></button></div>
-<input type="file" id="bk-file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0]);this.value=''">
+<input type="file" id="bk-file" style="display:none" onchange="importData(this.files[0]);this.value=''">
 <div class="tabs">
   <button class="tb active" onclick="sw('today')">今日</button>
   <button class="tb" onclick="sw('calendar')">記録</button>
