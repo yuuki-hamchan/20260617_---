@@ -962,12 +962,12 @@ function bsa(q){
       var nx=new Date(TODAY);nx.setDate(TODAY.getDate()+(7-TODAY.getDay()));
       var lsLbl=(ls.getMonth()+1)+'/'+ls.getDate();
       if(lsv){
-        parts.push('<div style="font-size:11px;color:#80d040;margin-top:4px;display:flex;align-items:center;gap:8px">✓ 先週日曜('+lsLbl+') '+lsv+s.unit+'<button onclick="editWeekly(\''+s.id+'\',\''+fk+'\',\''+lsk+'\')" style="background:none;border:1px solid #8b6914;color:#f0c040;font-size:10px;padding:3px 8px;cursor:pointer;font-family:inherit">✎ 修正</button></div>');
+        parts.push('<div style="font-size:11px;color:#80d040;margin-top:4px">✓ 先週日曜('+lsLbl+') '+lsv+s.unit+'</div>');
       }else{
         var prevV=getLastHealth(s.id,fk);
         parts.push('<div style="font-size:10px;color:#e0a040;margin-top:4px">⚠ 先週日曜('+lsLbl+')分が未入力</div>');
         parts.push('<div style="display:flex;gap:6px;align-items:center;margin-top:4px">'
-          +'<input class="sub-inp" id="hw-'+s.id+'" type="text" inputmode="decimal" placeholder="'+s.unit+'" style="font-size:16px;width:90px;padding:7px" '
+          +'<input class="sub-inp" type="text" inputmode="decimal" placeholder="'+s.unit+'" style="font-size:16px;width:90px;padding:7px" '
           +'onkeydown="if(event.key===\'Enter\'){this.blur();}" '
           +'onblur="var v=this.value.trim();if(v&&v!==\'0\')saveWeekly(\''+s.id+'\',\''+fk+'\',\''+lsk+'\',v)">'
           +'<span style="font-size:10px;color:#a0c8f0">先週分を入力</span></div>');
@@ -1250,12 +1250,6 @@ function getLastHealth(sid,fk,beforeKey){
   var ks=Object.keys(D.subRec).filter(function(k){if(beforeKey&&k>=beforeKey)return false;var w=((D.subRec[k]||{}).health||{})[sid];return w&&w[fk];}).sort();
   if(!ks.length)return null;var k=ks[ks.length-1];
   return{date:k,v:D.subRec[k].health[sid][fk]};
-}
-function editWeekly(sid,fk,dateKey){
-  var r=((D.subRec[dateKey]||{}).health||{})[sid];if(!r)return;
-  delete r[fk];r._done=false;sv();renderGrid();
-  setTimeout(function(){var el=document.getElementById('hw-'+sid);if(el){el.focus();}},80);
-  showMsg('正しい数字を入れ直してね');
 }
 function saveWeekly(sid,fk,dateKey,val){
   if(!D.subRec[dateKey])D.subRec[dateKey]={};
