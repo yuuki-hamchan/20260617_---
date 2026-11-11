@@ -194,6 +194,15 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
 .qp-fill{height:100%}
 .boss-hint{font-size:14px;color:#c0b090;line-height:1.5;margin:0 0 6px}
 .boss-hint b{color:#f0c040;font-weight:normal}
+@keyframes warnflash{0%,100%{box-shadow:0 0 0 0 rgba(255,40,40,.0);background:#3a0000}50%{box-shadow:0 0 14px 2px rgba(255,40,40,.8);background:#5a0000}}
+.boss-warn{border:3px solid #ff3030;border-radius:8px;padding:10px 12px;margin:8px 0;color:#fff;font-size:16px;line-height:1.6;text-align:center}
+.boss-warn .bw-big{font-size:21px;color:#ff5050;letter-spacing:2px;font-weight:bold}
+.boss-warn.danger{animation:warnflash 1s infinite}
+.boss-warn.lose{background:#1a0000;border-color:#802020}
+.boss-warn.lose .bw-big{color:#c04040}
+.boss-warn.caution{border-color:#f0c040;background:#2a2000}
+.boss-warn.caution .bw-big{color:#f0c040;font-size:18px}
+.boss-warn b{color:#ffd040;font-size:20px;font-weight:normal}
 .boss-guide{background:#000;border:3px solid #fff;border-radius:10px;box-shadow:0 0 0 3px #000,0 0 0 5px #9a9a9a;padding:12px 14px;margin:6px 4px 12px;color:#fff;font-size:16px;line-height:1.7}
 .boss-guide .bg-ttl{font-size:18px;color:#f0c040;margin-bottom:4px}
 .boss-guide ol{margin:4px 0 0 20px;padding:0}
@@ -306,6 +315,7 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
 
 <!-- 今日 -->
 <div id="s-today" class="scr active">
+  <div id="boss-alert"></div>
   <div id="carry-area"></div>
   <div class="panel">
     <div class="ptl">▼ 今日のステータス</div>
@@ -730,7 +740,7 @@ function sw(t){
 
 // ── 持ち越し ──
 function getTodayCarry(){return D.carryOver[TDK]||[];}
-function renderCarryBanner(){
+function renderCarryBanner(){renderBossAlert();
   var ca=document.getElementById('carry-area');
   if(!ca)return;
   var carried=getTodayCarry();
@@ -1979,6 +1989,34 @@ function saveBosses(){
   }));
   sv();switchBossTab('view');showMsg('BOSS設定を保存した！討伐の旅が始まる！');
 }
+// BOSSの危険度判定
+function bossRisk(b){
+  var tot=b.linked?b.linked.reduce(function(s,id){return s+getQuestTotalCount(id);},0):0;
+  var target=b.targetCount||100,need=Math.max(0,target-tot),L=(b.linked||[]).length||1;
+  var dl=getDaysLeft(b.deadline);
+  if(need<=0||dl===null)return {level:'ok',need:need};
+  if(dl<0)return {level:'lose',need:need};
+  var days=dl+1,perDay=need/days;
+  if(need>days*L)return {level:'impossible',need:need,days:days,perDay:perDay,L:L};
+  if(perDay>=L*0.8||(perDay>=1&&L===1))return {level:'danger',need:need,days:days,perDay:perDay,L:L};
+  if(perDay>=L*0.5)return {level:'caution',need:need,days:days,perDay:perDay,L:L};
+  return {level:'ok',need:need,days:days,perDay:perDay,L:L};
+}
+function bossWarnHTML(b,compact){
+  var r=bossRisk(b),pd=r.perDay?(Math.ceil(r.perDay*10)/10):0;
+  if(r.level==='lose')return '<div class="boss-warn lose"><div class="bw-big">💀 敗北…</div>期限を過ぎてしまった。あと'+r.need+'回足りなかった…<br>期限を延ばして、もう一度挑もう！</div>';
+  if(r.level==='impossible')return '<div class="boss-warn danger"><div class="bw-big">⚠ WARNING ⚠</div>このままでは<b>討伐不可能</b>だ！<br>残り'+r.days+'日で'+r.need+'回は届かない…<br>'+(compact?'':'期限か目標回数を見直そう')+'</div>';
+  if(r.level==='danger')return '<div class="boss-warn danger"><div class="bw-big">⚠ 危険！WARNING！ ⚠</div>あと<b>'+r.days+'日</b>で<b>'+r.need+'回</b>クエストしないと敗北だ！<br>1日<b>'+pd+'回</b>ペースが必要！</div>';
+  if(r.level==='caution'&&!compact)return '<div class="boss-warn caution"><div class="bw-big">⚡ 注意</div>あと'+r.days+'日で'+r.need+'回。1日'+pd+'回ペースをキープしよう！</div>';
+  return '';
+}
+// ホーム画面の警告バナー
+function renderBossAlert(){
+  var el=document.getElementById('boss-alert');if(!el)return;
+  var bad=(D.bosses||[]).filter(function(b){return b.name&&['danger','impossible','lose'].indexOf(bossRisk(b).level)>=0;});
+  el.innerHTML=bad.map(function(b){return '<div onclick="sw(\'boss\');setTimeout(function(){switchBossTab(\'view\')},80)" style="cursor:pointer">'
+    +bossWarnHTML(b,true).replace('<div class="bw-big">','<div class="bw-big">').replace(/<\/div>$/,'<div style="font-size:14px;color:#ffb0b0;margin-top:4px">BOSS「'+escH(b.name)+'」 ▶ タップで討伐状況へ</div></div>')+'</div>';}).join('');
+}
 function renderBossStatus(){
   const el=document.getElementById('boss-status');
   const active=D.bosses.filter(b=>b.name);
@@ -2000,6 +2038,7 @@ function renderBossStatus(){
     html+='<div class="boss-name-disp">'+(b.icon||'⭐')+' '+b.name;
     if(b.linked&&b.linked.length)html+=' <span class="boss-badge badge-linked">🔗'+b.linked.map(id=>{const q=QUESTS.find(x=>x.id===id);return q?q.name:id;}).join('・')+'</span>';
     html+='</div>';
+    if(!cleared)html+=bossWarnHTML(b,false);
     // カウントダウン
     if(b.deadline&&dl!==null){
       const urgentStyle=urgent?'border-color:#f04040;background:#3a0505':'';
