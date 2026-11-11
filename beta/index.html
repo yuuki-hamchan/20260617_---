@@ -931,6 +931,9 @@ function getLevel(){
   },0)+Object.values(D.nodrink).filter(v=>v==='yes').length;
   return{lv:1+Math.floor(tot/5),exp:tot%5,toNext:5-(tot%5),tot};
 }
+// BOSS用：開始日（startDate）〜今日に、そのクエストを達成した日数
+function bossCount(b,qid){var st=(b&&b.startDate)||'';
+  return Object.keys(D.subRec).filter(function(day){if(st&&day<st)return false;if(day>TDK)return false;var r=D.subRec[day][qid];return r&&Object.values(r).some(function(x){return x&&x._done;});}).length;}
 function getQuestTotalCount(qid){
   return Object.keys(D.subRec).filter(day=>{const r=D.subRec[day][qid];return r&&Object.values(r).some(x=>x&&x._done);}).length;
 }
@@ -1888,6 +1891,7 @@ function renderBossForm(){
       h+='<div class="chk-item'+(b.linked.includes(q.id)?' on':'')+'" onclick="toggleLink('+i+',\''+q.id+'\')" ><div class="chk-box'+(b.linked.includes(q.id)?' on':'')+'" id="chk-'+i+'-'+q.id+'">'+(b.linked.includes(q.id)?'✓':'')+'</div>'+q.icon+q.name+'</div>';
     });
     h+='</div></div>';
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px"><div style="font-size:14px;color:#a0c8f0;width:60px">開始日</div><input class="ri" type="date" id="bs-'+i+'" value="'+(b.startDate||'')+'" style="width:150px"><span style="font-size:13px;color:#9a8a7a">'+(b.startDate?'この日から数える':'空欄＝全期間を数える')+'</span></div>';
     h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px"><div style="font-size:14px;color:#a0c8f0;width:60px">達成期限</div><input class="ri" type="date" id="bd-'+i+'" value="'+(b.deadline||'')+'" style="width:130px" oninput="updateDaysLeft('+i+',this.value)"><span id="days-left-'+i+'" style="font-size:14px;color:#f0c040">'+(b.deadline?'あと'+Math.max(0,getDaysLeft(b.deadline))+'日':'')+'</span></div>';
     h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><div style="font-size:14px;color:#a0c8f0;width:60px">目標回数</div><button class="tc-btn" onclick="stepTarget('+i+',-1)">▼</button><input class="ri" type="number" inputmode="numeric" id="bt-'+i+'" value="'+(b.targetCount||100)+'" style="width:60px;text-align:center" onchange="clampTarget('+i+')"><button class="tc-btn" onclick="stepTarget('+i+',1)">▲</button><span id="tc-cap-'+i+'" style="font-size:14px;color:#6a5a4a">'+capLabel(b.deadline)+'</span></div></div>';
   });
@@ -1899,6 +1903,7 @@ function captureBossInputs(){
     if(g('bi-'+i))b.icon=g('bi-'+i).value||'⭐';
     if(g('bn-'+i))b.name=g('bn-'+i).value;
     if(g('bd-'+i))b.deadline=g('bd-'+i).value;
+    if(g('bs-'+i))b.startDate=g('bs-'+i).value;
     if(g('bt-'+i))b.targetCount=parseInt(g('bt-'+i).value)||100;
   });
 }
@@ -1920,10 +1925,11 @@ function addBoss(){
     icon:(document.getElementById('bi-'+i)||{value:b.icon||'⭐'}).value||'⭐',
     name:(document.getElementById('bn-'+i)||{value:b.name||''}).value,
     deadline:(document.getElementById('bd-'+i)||{value:b.deadline||''}).value,
+    startDate:(document.getElementById('bs-'+i)||{value:b.startDate||''}).value,
     targetCount:parseInt((document.getElementById('bt-'+i)||{value:b.targetCount||100}).value)||100,
     bossType:b.bossType||'slime',
   }));
-  D.bosses.push({id:'b'+Date.now(),name:'',icon:'⭐',linked:[],deadline:'',targetCount:100,bossType:'slime'});
+  D.bosses.push({id:'b'+Date.now(),name:'',icon:'⭐',linked:[],deadline:'',targetCount:100,bossType:'slime',startDate:TDK});
   sv();renderBossForm();showMsg('新しいBOSSを追加！名前・紐付けクエスト・期限を設定しよう。');
 }
 // ===== BOSS設定：会話で1つずつ =====
@@ -1975,7 +1981,7 @@ function bwDate(v){var w=window._bw;w.deadline=v;var c=targetCap(v);w.target=c||
 function bwStep(d){var w=window._bw,c=targetCap(w.deadline)||1;w.target=Math.max(1,Math.min(c,(w.target||c)+d));var e=document.getElementById('bw-tgt');if(e)e.textContent=w.target;}
 function bwFinish(){var w=window._bw;
   D.bosses=(D.bosses||[]).filter(function(b){return b.name;});
-  D.bosses.push({id:'b'+Date.now(),name:w.name.trim(),icon:'⚔',linked:w.linked.slice(),deadline:w.deadline,targetCount:w.target||targetCap(w.deadline)||100,bossType:w.type||'slime'});
+  D.bosses.push({id:'b'+Date.now(),startDate:TDK,name:w.name.trim(),icon:'⚔',linked:w.linked.slice(),deadline:w.deadline,targetCount:w.target||targetCap(w.deadline)||100,bossType:w.type||'slime'});
   sv();bwClose();switchBossTab('view');showMsg('BOSS「'+w.name.trim()+'」との戦いが始まった！');
 }
 function saveBosses(){
@@ -1984,6 +1990,7 @@ function saveBosses(){
     icon:document.getElementById('bi-'+i).value||'⭐',
     name:document.getElementById('bn-'+i).value,
     deadline:document.getElementById('bd-'+i).value,
+    startDate:(document.getElementById('bs-'+i)||{value:b.startDate||''}).value,
     targetCount:parseInt(document.getElementById('bt-'+i).value)||100,
     bossType:b.bossType||'slime',
   }));
@@ -1991,7 +1998,7 @@ function saveBosses(){
 }
 // BOSSの危険度判定
 function bossRisk(b){
-  var tot=b.linked?b.linked.reduce(function(s,id){return s+getQuestTotalCount(id);},0):0;
+  var tot=b.linked?b.linked.reduce(function(s,id){return s+bossCount(b,id);},0):0;
   var target=b.targetCount||100,need=Math.max(0,target-tot),L=(b.linked||[]).length||1;
   var dl=getDaysLeft(b.deadline);
   if(need<=0||dl===null)return {level:'ok',need:need};
@@ -2023,7 +2030,7 @@ function renderBossStatus(){
   var vg=document.getElementById('boss-view-guide');if(vg)vg.style.display=active.length?'block':'none';
   if(!active.length){el.innerHTML='<div class="boss-guide" style="text-align:center"><div style="font-size:40px">👾</div><div class="bg-ttl" style="font-size:20px">まずはBOSSの設定をしよう！</div>まだ倒すBOSS（大きな目標）が決まっていません。<br>設定すると、ここに討伐状況が出ます。<button class="rb-done" style="font-size:17px;margin-top:12px" onclick="openBossWizard()">⚔ BOSSを決める</button></div>';return;}
   el.innerHTML=active.map(b=>{
-    const tot=b.linked?b.linked.reduce((s,id)=>s+getQuestTotalCount(id),0):0;
+    const tot=b.linked?b.linked.reduce((s,id)=>s+bossCount(b,id),0):0;
     const pct=Math.min(100,Math.round(tot/(b.targetCount||100)*100));
     const dl=getDaysLeft(b.deadline);
     const cleared=pct>=100;
@@ -2047,14 +2054,14 @@ function renderBossStatus(){
       html+='<div class="countdown-box" style="'+urgentStyle+'">';
       html+='<div><div class="countdown-num" style="color:'+color+'">'+dlText+'</div>';
       html+='<div class="countdown-lbl">'+lbl+'</div></div>';
-      html+='<div style="flex:1"><div style="font-size:14px;color:#6a5a4a">期限: '+b.deadline+'</div>';
+      html+='<div style="flex:1"><div style="font-size:14px;color:#6a5a4a">'+(b.startDate?'開始: '+b.startDate+'<br>':'')+'期限: '+b.deadline+'</div>';
       if(dl>0&&!cleared)html+='<div style="font-size:14px;color:#4a5a6a;margin-top:2px">約'+Math.ceil(dl/7)+'週間 / 約'+Math.ceil(dl/30)+'ヶ月</div>';
       html+='</div></div>';
     }
     // クエスト別進捗
     if(b.linked)b.linked.forEach(qid=>{
       const q=QUESTS.find(x=>x.id===qid);if(!q)return;
-      const cnt=getQuestTotalCount(qid);
+      const cnt=bossCount(b,qid);
       const qpct=Math.min(100,Math.round(cnt/(b.targetCount||100)*100));
       html+='<div class="qp-row"><div class="qp-lbl"><span style="color:'+q.color+'">'+q.icon+q.name+'</span><span style="color:#a0c8f0">'+cnt+'回</span></div>';
       html+='<div class="qp-bar"><div class="qp-fill" style="width:'+qpct+'%;background:'+q.color+'"></div></div></div>';
