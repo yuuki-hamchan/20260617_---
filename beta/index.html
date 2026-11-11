@@ -505,38 +505,39 @@ const BOSS_TYPES=[
   {id:'demon', name:'魔王デモン',   label:'最強'},
 ];
 const MORNING_QUESTIONS=[
+  // HP＝体力（睡眠・体調・飲酒）／MP＝やる気（気分・ストレス・飲酒）。どちらも50からスタート
   {id:'sleep',icon:'😴',text:'ゆうべの睡眠は？',type:'hp',
    choices:[
-     {label:'4時間未満',hp:-10,mp:0},
+     {label:'4時間未満',hp:-20,mp:0},
      {label:'4～6時間',hp:-5,mp:0},
-     {label:'6～8時間',hp:0,mp:0},
-     {label:'8時間以上',hp:5,mp:0},
+     {label:'6～8時間',hp:10,mp:0},
+     {label:'8時間以上',hp:15,mp:0},
    ]},
   {id:'body',icon:'💪',text:'体の調子は？',type:'hp',
    choices:[
-     {label:'絶好調',hp:5,mp:0},
-     {label:'普通',hp:0,mp:0},
-     {label:'だるい',hp:-5,mp:0},
-     {label:'痛み・不調あり',hp:-10,mp:0},
+     {label:'絶好調',hp:20,mp:0},
+     {label:'普通',hp:5,mp:0},
+     {label:'だるい',hp:-10,mp:0},
+     {label:'痛み・不調あり',hp:-20,mp:0},
    ]},
   {id:'mood',icon:'🔥',text:'気分・やる気は？',type:'mp',
    choices:[
-     {label:'燃えている',hp:0,mp:10},
-     {label:'普通',hp:0,mp:0},
-     {label:'ちょっと低め',hp:0,mp:-5},
-     {label:'まったく無い',hp:0,mp:-10},
+     {label:'燃えている',hp:0,mp:25},
+     {label:'普通',hp:0,mp:5},
+     {label:'ちょっと低め',hp:0,mp:-10},
+     {label:'まったく無い',hp:0,mp:-20},
    ]},
   {id:'stress',icon:'😣',text:'ストレス・不安は？',type:'mp',
    choices:[
-     {label:'なし',hp:0,mp:5},
-     {label:'少しある',hp:0,mp:-3},
-     {label:'かなりある',hp:0,mp:-8},
+     {label:'なし',hp:0,mp:15},
+     {label:'少しある',hp:0,mp:0},
+     {label:'かなりある',hp:0,mp:-15},
    ]},
   {id:'drink',icon:'🍺',text:'前日の飲酒量は？',type:'both',
    choices:[
-     {label:'多い',hp:-8,mp:-5},
-     {label:'普通',hp:-3,mp:-2},
-     {label:'少ない（飲んでいない含む）',hp:0,mp:0},
+     {label:'多い',hp:-15,mp:-10},
+     {label:'普通',hp:-5,mp:-5},
+     {label:'少ない（飲んでいない含む）',hp:5,mp:5},
    ]},
 ];
 const QUESTS=[
@@ -829,7 +830,7 @@ function dqType(el,text){
   window._dqT=setInterval(function(){if(!document.body.contains(el)){clearInterval(window._dqT);return;}el.textContent+=chars[i++]||'';if(i>=chars.length)clearInterval(window._dqT);},35);
 }
 function renderMorningResult(){
-  let hp=60,mp=60;
+  let hp=50,mp=50;
   MORNING_QUESTIONS.forEach(q=>{
     const ans=morningAnswers[q.id];
     if(ans){hp+=ans.hp;mp+=ans.mp;}
