@@ -342,7 +342,7 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
     <div class="srow"><div class="slbl">EXP</div><div class="bbg"><div class="bf bex" id="b-exp" style="width:0%"></div></div><div class="sval" id="t-exp">0/5</div></div>
     </div></div>
     <div class="rulehint">MPが30未満だと運動以外ロック。運動するとMP回復＋HP消費</div>
-    <button class="rbtn" style="margin-top:6px;width:100%;font-size:14px" onclick="openMorningQuiz()">🔮 診断をやり直す</button>
+    <div style="display:flex;gap:6px;margin-top:6px"><button class="rbtn" style="margin:0;flex:1;font-size:13px;padding-left:2px;padding-right:2px;white-space:nowrap" onclick="openMorningQuiz()">🔮 診断をやり直す</button><button class="rbtn" id="intro-btn" style="margin:0;flex:1;font-size:13px;padding-left:2px;padding-right:2px;white-space:nowrap" onclick="openIntro()">📖 アプリの説明</button></div>
   </div>
   <div id="lock-area"></div>
   <div class="panel">
@@ -2224,11 +2224,52 @@ function renderAvatarPick(){
   if(first)dqType(m,t);else m.textContent=t;
 }
 function awSave(){D.avatar=window._aw.sel;sv();renderAvatar();var a=AVATARS.find(function(x){return x.id===D.avatar;});awEnd();showMsg('🪞 見た目を「'+a.n+'」にした！');}
+
+// ===== アプリの説明（RPG風に1文字ずつ） =====
+var INTRO_PAGES=[
+ 'ようこそ、冒険者よ。\nこのアプリは\n「習慣化アプリ」です。',
+ '習慣化は、気合や根性で\n続けるものではありません。',
+ '地図アプリを\n思い出してください。',
+ 'まず、目的地を\n設定しますよね。\n次に、到着予定時間。',
+ 'すると、現在地から\n目的地までの\nルートが現れます。',
+ 'このアプリは、まさに\n「現在地から目的地まで」の\nルートを設定するアプリです。',
+ '🏁 目的地は「BOSS」。\nあなたが倒したい目標です。\n⏰ 到着予定時間は\n「BOSSの期限」。',
+ '🗺 ルートは「目標タブ」。\n週・月に何回やるか決めます。\n📍 現在地は、今日の\n「ステータス」と「記録」。',
+ 'クエストをこなすたびに、\nBOSSにダメージ。\n一歩ずつ、目的地へ近づこう。',
+ 'さあ、冒険をはじめよう！'
+];
+function openIntro(after){window._iw={p:0,after:after||null};renderIntro();}
+function introEnd(){clearInterval(window._itT);var o=document.getElementById('intro-ov');if(o)o.remove();var a=window._iw&&window._iw.after;if(window._iw)window._iw.after=null;if(a)a();}
+function renderIntro(){
+  var w=window._iw,last=w.p>=INTRO_PAGES.length-1;
+  var o=document.getElementById('intro-ov');if(o)o.remove();
+  var h='<div class="overlay" id="intro-ov"><div class="popup dq" style="cursor:pointer" onclick="introTap(event)">'
+    +'<div class="pop-ttl">📖 このアプリについて</div>'
+    +'<div class="dq-msg" style="min-height:7em;font-size:19px"><span id="intro-msg" style="white-space:pre-line"></span><span class="dq-cur" id="intro-cur" style="visibility:hidden">▼</span></div>'
+    +'<div class="dq-step" style="text-align:right;margin-bottom:8px">'+(w.p+1)+' / '+INTRO_PAGES.length+'</div>'
+    +'<button class="rb-done" id="intro-next" style="margin-top:0">'+(last?'⚔ 冒険をはじめる':'▶ つぎへ')+'</button>'
+    +(last?'':'<button class="rbtn cl" id="intro-skip" style="width:100%;margin:8px 0 0;font-size:16px;padding:10px">スキップ</button>')
+    +'</div></div>';
+  document.getElementById('overlay-area').insertAdjacentHTML('beforeend',h);
+  var el=document.getElementById('intro-msg'),chars=Array.from(INTRO_PAGES[w.p]),i=0;w.typing=true;
+  clearInterval(window._itT);
+  window._itT=setInterval(function(){if(!document.body.contains(el)){clearInterval(window._itT);return;}
+    el.textContent+=chars[i++]||'';if(i>=chars.length){clearInterval(window._itT);introDone();}},60);
+}
+function introDone(){window._iw.typing=false;var c=document.getElementById('intro-cur');if(c)c.style.visibility='visible';}
+function introTap(e){
+  var w=window._iw;
+  if(e.target&&e.target.id==='intro-skip'){introEnd();return;}
+  if(w.typing){clearInterval(window._itT);document.getElementById('intro-msg').textContent=INTRO_PAGES[w.p];introDone();return;}
+  if(w.p>=INTRO_PAGES.length-1){introEnd();return;}
+  w.p++;renderIntro();
+}
 function _startDay(){checkMorningQuiz();checkReviewTime();if(isLocked())showMpAlert();}
 renderJobBadge();renderAvatar();
 function _afterAv(){if(IS_FIRST_OPEN)showStreak(_startDay);else _startDay();}
 function _afterJob(){if(!D.avatar&&!D.avatarAsked){D.avatarAsked=1;sv();openAvatar(_afterAv);}else _afterAv();}
-if(!D.job&&!D.jobAsked){D.jobAsked=1;sv();setTimeout(function(){openJob(_afterJob);},300);}
+if(!D.introSeen){D.introSeen=1;sv();setTimeout(function(){openIntro(function(){if(!D.job&&!D.jobAsked){D.jobAsked=1;sv();openJob(_afterJob);}else _afterJob();});},300);}
+else if(!D.job&&!D.jobAsked){D.jobAsked=1;sv();setTimeout(function(){openJob(_afterJob);},300);}
 else if(!D.avatar&&!D.avatarAsked){D.avatarAsked=1;sv();setTimeout(function(){openAvatar(_afterAv);},300);}
 else if(IS_FIRST_OPEN)setTimeout(function(){showStreak(_startDay);},300);else _startDay();
 const _h=new Date().getHours();
