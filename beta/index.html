@@ -162,7 +162,10 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
 .dd-empty{font-size:14px;color:#4a3a6a;text-align:center;padding:10px}
 .gr{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:nowrap}
 .glbl{font-size:16px;color:#a0c8f0;width:84px;flex:none;font-weight:bold;white-space:nowrap}
-#wk-inp .ri,#mo-inp .ri{width:72px;flex:none;font-size:20px;padding:6px 4px}
+@keyframes gpulse{0%,100%{box-shadow:0 0 0 0 rgba(128,208,64,.7)}50%{box-shadow:0 0 0 8px rgba(128,208,64,0)}}
+.goal-pulse{animation:gpulse .8s 3}
+#wk-inp .gunit2,#mo-inp .gunit2{font-size:16px;color:#f0e6c8;margin-left:-4px}
+#wk-inp .ri,#mo-inp .ri{width:66px;flex:none;font-size:20px;padding:6px 4px}
 #wk-inp .gcur,#mo-inp .gcur{margin-left:auto;white-space:nowrap;font-size:15px}
 .gunit{font-size:14px;color:#6a5a4a}
 .gprog{font-size:14px;color:#f0c040;margin-left:auto}
@@ -1738,13 +1741,22 @@ function renderGoalInputs(){
   var qs=QUESTS.filter(function(q){return q.special!=='nodrink';});
   var wh='',mh='';
   qs.forEach(function(q){
-    wh+='<div class="gr"><div class="glbl">'+q.icon+q.name+'</div><input class="ri" type="number" id="wk-'+q.id+'" value="'+(wg[q.id]||'')+'" placeholder="0"><div class="gcur">今週'+getQuestWeekCount(q.id)+'回</div></div>';
-    mh+='<div class="gr"><div class="glbl">'+q.icon+q.name+'</div><input class="ri" type="number" id="mo-'+q.id+'" value="'+((D.mo[mk]||{})[q.id]||'')+'" placeholder="0"><div class="gcur">今月'+getQuestMonthCount(q.id)+'回</div></div>';
+    wh+='<div class="gr"><div class="glbl">'+q.icon+q.name+'</div><input class="ri" type="number" inputmode="numeric" enterkeyhint="next" onkeydown="goalNext(event,this)" id="wk-'+q.id+'" value="'+(wg[q.id]||'')+'" placeholder="0"><span class="gunit2">回</span><div class="gcur">今週'+getQuestWeekCount(q.id)+'回</div></div>';
+    mh+='<div class="gr"><div class="glbl">'+q.icon+q.name+'</div><input class="ri" type="number" inputmode="numeric" enterkeyhint="next" onkeydown="goalNext(event,this)" id="mo-'+q.id+'" value="'+((D.mo[mk]||{})[q.id]||'')+'" placeholder="0"><span class="gunit2">回</span><div class="gcur">今月'+getQuestMonthCount(q.id)+'回</div></div>';
   });
-  wh+='<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" id="wk-nodrink" value="'+(wg.nodrink||'')+'" placeholder="0"><div class="gcur">今週'+getAbsWeek()+'日</div></div>';
-  mh+='<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" id="mo-nodrink" value="'+((D.mo[mk]||{}).nodrink||'')+'" placeholder="0"><div class="gcur">今月'+getAbsMonth()+'日</div></div>';
+  wh+='<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" inputmode="numeric" enterkeyhint="done" onkeydown="goalNext(event,this)" id="wk-nodrink" value="'+(wg.nodrink||'')+'" placeholder="0"><span class="gunit2">日</span><div class="gcur">今週'+getAbsWeek()+'日</div></div>';
+  mh+='<div class="gr"><div class="glbl">🚫禁酒</div><input class="ri" type="number" inputmode="numeric" enterkeyhint="done" onkeydown="goalNext(event,this)" id="mo-nodrink" value="'+((D.mo[mk]||{}).nodrink||'')+'" placeholder="0"><span class="gunit2">日</span><div class="gcur">今月'+getAbsMonth()+'日</div></div>';
   document.getElementById('wk-inp').innerHTML=wh;
   document.getElementById('mo-inp').innerHTML=mh;
+}
+// 確定（✓／改行）キーで次の欄へ。最後の欄なら「決定」ボタンへ
+function goalNext(e,el){
+  if(e.key!=='Enter')return;
+  e.preventDefault();
+  var box=el.closest('#wk-inp,#mo-inp');if(!box)return;
+  var list=[].slice.call(box.querySelectorAll('input.ri')),i=list.indexOf(el);
+  if(i>=0&&i<list.length-1){var nx=list[i+1];nx.focus();nx.select&&nx.select();nx.scrollIntoView({block:'center',behavior:'smooth'});}
+  else{el.blur();var btn=box.parentNode.querySelector('.rbtn.ok');if(btn){btn.scrollIntoView({block:'center',behavior:'smooth'});btn.classList.add('goal-pulse');setTimeout(function(){btn.classList.remove('goal-pulse');},2400);}}
 }
 function showGoalSaved(title,goals,curFn){
   var rows=QUESTS.filter(function(q){return (goals[q.id]||0)>0;}).map(function(q){
