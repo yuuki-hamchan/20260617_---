@@ -192,9 +192,15 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
 .qp-lbl{display:flex;justify-content:space-between;font-size:14px;margin-bottom:2px}
 .qp-bar{height:7px;background:#1a0a2e;border:1px solid #4a3a6a}
 .qp-fill{height:100%}
-.chk-row{display:flex;gap:4px;flex-wrap:wrap;flex-direction:column}
-.chk-item{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:17px;color:#a0c8f0;padding:6px 4px;min-height:44px}
-.chk-box{width:28px;height:28px;border:2px solid #8b6914;background:#1a0a2e;display:flex;align-items:center;justify-content:center;font-size:20px;color:#f0c040;flex-shrink:0;border-radius:4px}
+.boss-hint{font-size:14px;color:#c0b090;line-height:1.5;margin:0 0 6px}
+.boss-hint b{color:#f0c040;font-weight:normal}
+.boss-guide{background:#000;border:3px solid #fff;border-radius:10px;box-shadow:0 0 0 3px #000,0 0 0 5px #9a9a9a;padding:12px 14px;margin:6px 4px 12px;color:#fff;font-size:16px;line-height:1.7}
+.boss-guide .bg-ttl{font-size:18px;color:#f0c040;margin-bottom:4px}
+.boss-guide ol{margin:4px 0 0 20px;padding:0}
+.chk-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.chk-item{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:15px;color:#a0c8f0;padding:6px 5px;min-height:42px;border:1px solid #2a1a4a;background:#0d0520;border-radius:4px;white-space:nowrap;overflow:hidden}
+.chk-item.on{border-color:#40a000;background:#0d1a00;color:#f0e6c8}
+.chk-box{width:24px;height:24px;border:2px solid #8b6914;background:#1a0a2e;display:flex;align-items:center;justify-content:center;font-size:20px;color:#f0c040;flex-shrink:0;border-radius:4px}
 .chk-box.on{background:#2a4a00;border-color:#40a000}
 .add-boss-btn{width:100%;padding:8px;background:#1a0a2e;border:2px dashed #4a3a6a;color:#6a5a4a;font-family:'DotGothic16',monospace;font-size:14px;cursor:pointer;margin-top:4px}
 .add-boss-btn:hover{border-color:#8b6914;color:#a0c8f0}
@@ -406,6 +412,7 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
   <div id="boss-set-area">
     <div class="panel">
       <div class="ptl">▼ BOSS設定</div>
+      <div class="boss-guide"><div class="bg-ttl">⚔ BOSSの設定をしよう！</div>BOSS＝あなたが達成したい<b style="color:#f0c040;font-weight:normal">大きな目標</b>です。<ol><li>BOSSの名前（目標）を入れる</li><li>モンスターを選ぶ</li><li>つながるクエストを選ぶ</li><li>期限を決める</li><li>一番下の緑のボタンで保存</li></ol></div>
       <div id="boss-form"></div>
       <button class="add-boss-btn" onclick="addBoss()">＋ 新しいBOSSを追加</button>
       <button class="rbtn ok" style="margin-top:8px;display:block;width:100%" onclick="saveBosses()">▶ BOSSを保存して討伐状況へ</button>
@@ -414,6 +421,7 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
   <div id="boss-view-area" style="display:none">
     <div class="panel">
       <div class="ptl">▼ BOSS討伐状況</div>
+      <div class="boss-guide" id="boss-view-guide" style="font-size:15px"><div class="bg-ttl">⚔ 討伐状況の見かた</div>紐付けたクエストを1日こなすごとに、BOSSに1ダメージ。<br>赤いゲージ（BOSS HP）が0になり、討伐力が100%になれば<b style="color:#f0c040;font-weight:normal">討伐完了！</b></div>
       <div id="boss-status"></div>
     </div>
   </div>
@@ -1856,20 +1864,23 @@ function updateDaysLeft(idx,val){
   el.style.color=days<=7?'#e04040':days<=30?'#f0c040':'#80d040';
 }
 function renderBossForm(){
+  if(!D.bosses.length){D.bosses.push({id:'b'+Date.now(),name:'',icon:'⭐',linked:[],deadline:'',targetCount:100,bossType:'slime'});showMsg('まずはBOSSの設定をしよう！名前（目標）から入れてね');}
   var h='';
   D.bosses.forEach(function(b,i){
     h+='<div style="border:1px solid #4a3a6a;padding:8px;margin-bottom:8px;background:#0a0518">';
     h+='<div style="display:flex;gap:5px;align-items:center;margin-bottom:6px;flex-wrap:wrap"><input class="ri" id="bi-'+i+'" value="'+(b.icon||'⭐')+'" style="width:34px;text-align:center" placeholder="🎯"><input class="ri" id="bn-'+i+'" value="'+b.name+'" style="flex:1;min-width:100px" placeholder="BOSS名"><button onclick="removeBoss('+i+')" style="background:#2a0a0a;border:1px solid #802020;color:#d04040;font-family:DotGothic16,monospace;font-size:14px;cursor:pointer;padding:3px 6px">削除</button></div>';
-    h+='<div style="margin-bottom:6px"><div style="font-size:14px;color:#a0c8f0;margin-bottom:4px">👾 BOSSキャラを選ぶ</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">';
+    h+='<div class="boss-hint" style="margin-top:-2px">↑ 左はアイコン、右はBOSSの名前＝あなたの<b>大きな目標</b>（例：本を出版する／資格に合格する）</div>';
+    h+='<div style="margin-bottom:6px"><div style="font-size:14px;color:#a0c8f0;margin-bottom:4px">👾 BOSSキャラを選ぶ</div><div class="boss-hint">倒したいモンスターを1体タップ。討伐状況の画面に出てきます</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">';
     BOSS_TYPES.forEach(function(bt){
       h+='<div onclick="selectBossType('+i+',\''+bt.id+'\')" style="cursor:pointer;border:2px solid '+(b.bossType===bt.id?'#f0c040':'#2a1a4a')+';background:'+(b.bossType===bt.id?'#1a1200':'#0a0518')+';padding:3px;text-align:center;border-radius:2px"><img src="'+BOSS_IMAGES[bt.id]+'" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><div style="font-size:12px;line-height:1.3;color:'+(b.bossType===bt.id?'#f0c040':'#9a8a7a')+';margin-top:2px">'+bt.name+'</div></div>';
     });
     h+='</div></div>';
-    h+='<div style="margin-bottom:6px"><div style="font-size:14px;color:#a0c8f0;margin-bottom:4px">紐付けクエスト</div><div class="chk-row">';
+    h+='<div style="margin-bottom:6px"><div style="font-size:14px;color:#a0c8f0;margin-bottom:4px">⚔ 紐付けクエスト</div><div class="boss-hint">この目標につながる習慣を選ぼう（いくつでもOK）。選んだクエストを<b>1日こなすごとにBOSSへ1ダメージ</b>が入ります</div><div class="chk-row">';
     QUESTS.filter(function(q){return q.special!=='nodrink';}).forEach(function(q){
-      h+='<div class="chk-item" onclick="toggleLink('+i+',\''+q.id+'\')" ><div class="chk-box'+(b.linked.includes(q.id)?' on':'')+'" id="chk-'+i+'-'+q.id+'">'+(b.linked.includes(q.id)?'✓':'')+'</div>'+q.icon+q.name+'</div>';
+      h+='<div class="chk-item'+(b.linked.includes(q.id)?' on':'')+'" onclick="toggleLink('+i+',\''+q.id+'\')" ><div class="chk-box'+(b.linked.includes(q.id)?' on':'')+'" id="chk-'+i+'-'+q.id+'">'+(b.linked.includes(q.id)?'✓':'')+'</div>'+q.icon+q.name+'</div>';
     });
     h+='</div></div>';
+    h+='<div class="boss-hint" style="margin-top:4px">📅 いつまでに倒すかを決めよう。期限を選ぶと、目標回数が「期限までの日数」で自動で入ります</div>';
     h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px"><div style="font-size:14px;color:#a0c8f0;width:60px">達成期限</div><input class="ri" type="date" id="bd-'+i+'" value="'+(b.deadline||'')+'" style="width:130px" oninput="updateDaysLeft('+i+',this.value)"><span id="days-left-'+i+'" style="font-size:14px;color:#f0c040">'+(b.deadline?'あと'+Math.max(0,getDaysLeft(b.deadline))+'日':'')+'</span></div>';
     h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><div style="font-size:14px;color:#a0c8f0;width:60px">目標回数</div><button class="tc-btn" onclick="stepTarget('+i+',-1)">▼</button><input class="ri" type="number" inputmode="numeric" id="bt-'+i+'" value="'+(b.targetCount||100)+'" style="width:60px;text-align:center" onchange="clampTarget('+i+')"><button class="tc-btn" onclick="stepTarget('+i+',1)">▲</button><span id="tc-cap-'+i+'" style="font-size:14px;color:#6a5a4a">'+capLabel(b.deadline)+'</span></div></div>';
   });
@@ -1922,7 +1933,8 @@ function saveBosses(){
 function renderBossStatus(){
   const el=document.getElementById('boss-status');
   const active=D.bosses.filter(b=>b.name);
-  if(!active.length){el.innerHTML='<div style="font-size:14px;color:#4a3a6a">BOSSを設定してください</div>';return;}
+  var vg=document.getElementById('boss-view-guide');if(vg)vg.style.display=active.length?'block':'none';
+  if(!active.length){el.innerHTML='<div class="boss-guide" style="text-align:center"><div style="font-size:40px">👾</div><div class="bg-ttl" style="font-size:20px">まずはBOSSの設定をしよう！</div>まだ倒すBOSS（大きな目標）が決まっていません。<br>設定すると、ここに討伐状況が出ます。<button class="rb-done" style="font-size:17px;margin-top:12px" onclick="switchBossTab(\'set\')">⚙ BOSSを設定する</button></div>';return;}
   el.innerHTML=active.map(b=>{
     const tot=b.linked?b.linked.reduce((s,id)=>s+getQuestTotalCount(id),0):0;
     const pct=Math.min(100,Math.round(tot/(b.targetCount||100)*100));
