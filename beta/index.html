@@ -125,6 +125,13 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
 .ws-label{font-size:14px;color:#6a5a4a;margin-top:1px}
 .ws-bar{width:100%;height:3px;background:#1a0a2e;border-radius:2px;margin-top:2px;overflow:hidden}
 .ws-fill{height:100%;border-radius:2px;transition:width .3s}
+.mini-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0 10px}
+.ms-box{background:#0a0518;border:2px solid #4a3a6a;border-radius:6px;padding:7px 4px 6px;text-align:center}
+.ms-lbl{font-size:14px;color:#a0c8f0}
+.ms-num{font-size:24px;line-height:1.2}
+.ms-sub{font-size:12px;letter-spacing:-.3px;overflow:hidden;color:#9a8a7a;white-space:nowrap}
+.ms-bar{height:5px;background:#1a0a2e;border-radius:3px;margin:4px 4px 0;overflow:hidden}
+.ms-bar div{height:100%;border-radius:3px}
 .summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
 .sum-card{background:#0a0518;border:1px solid #2a1a4a;padding:6px;border-radius:2px}
 .sum-name{font-size:14px;color:#a0c8f0;margin-bottom:3px}
@@ -350,6 +357,7 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
     <div class="ptl">▼ クエスト選択</div>
     <div class="ctabs" id="ctabs"></div>
     <div class="goal-hint" id="goal-hint"></div>
+    <div class="mini-sum" id="mini-summary"></div>
     <div class="cal-head">
       <button class="cnav" id="cprev">◀</button>
       <div class="cal-ttl" id="cal-ttl"></div>
@@ -371,7 +379,7 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
     </div>
   </div>
   <div class="panel">
-    <div class="ptl">▼ 今月のサマリー</div>
+    <div class="ptl">▼ 今月のくわしいサマリー</div>
     <div class="summary-grid" id="month-summary"></div>
   </div>
   <div class="panel" id="exercise-stats-panel" style="display:none">
@@ -1670,8 +1678,16 @@ function renderMonthSummary(cy,cm,monthTotal,mg,wg,q){
   var totAll=doneDays.length;
   var firstDay=totAll?doneDays[0]:'';
   var unit=isNd?'日':'回';
+  // 上の小さいサマリー（今月・今週・累計）
+  var ms=document.getElementById('mini-summary');
+  if(ms){var box=function(lbl,num,sub,p,c){return '<div class="ms-box"><div class="ms-lbl">'+lbl+'</div><div class="ms-num" style="color:'+c+'">'+num+'</div><div class="ms-sub">'+sub+'</div>'+(p===null?'':'<div class="ms-bar"><div style="width:'+p+'%;background:'+(p>=100?'#f0c040':c)+'"></div></div>')+'</div>';};
+    var u=(q.special==='nodrink'||calQ==='nodrink')?'日':'回';
+    ms.innerHTML=box('📅 今月',monthTotal+u,mg>0?'目標'+mg+u+'・'+pct+'%':'目標なし',mg>0?pct:null,color)
+      +box('📆 今週',wkDone+u,wg>0?'目標'+wg+u+'・'+wPct+'%':'目標なし',wg>0?wPct:null,color)
+      +'__TOTAL__';}
   h+='<div class="sum-card" style="grid-column:1/-1"><div class="sum-name">🏆 累計（全期間）</div><div class="sum-nums"><div class="sum-cur" style="color:#f0c040">'+totAll+unit+'</div><div class="sum-tgt">'+(firstDay?'記録開始 '+firstDay.replace(/-/g,'/'):'まだ記録なし')+'</div></div></div>';
   el.innerHTML=h;
+  if(ms)ms.innerHTML=ms.innerHTML.replace('__TOTAL__','<div class="ms-box"><div class="ms-lbl">🏆 累計</div><div class="ms-num" style="color:#f0c040">'+totAll+unit+'</div><div class="ms-sub">'+(firstDay?firstDay.slice(5).replace('-','/')+'〜':'記録なし')+'</div></div>');
 }
 function getAbsWeek(){const d=new Date(TODAY);d.setDate(d.getDate()-monOff(d));let c=0;for(let i=0;i<7;i++){const dd=new Date(d);dd.setDate(d.getDate()+i);if(D.nodrink[dk(dd)]==='yes')c++;}return c;}
 function getAbsMonth(){let c=0;const y=TODAY.getFullYear(),m=TODAY.getMonth();for(let i=1;i<=31;i++){const d=new Date(y,m,i);if(d.getMonth()!==m)break;if(D.nodrink[dk(d)]==='yes')c++;}return c;}
