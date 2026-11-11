@@ -412,7 +412,6 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
   <div id="boss-set-area">
     <div class="panel">
       <div class="ptl">▼ BOSS設定</div>
-      <div class="boss-guide"><div class="bg-ttl">⚔ BOSSの設定をしよう！</div>BOSS＝あなたが達成したい<b style="color:#f0c040;font-weight:normal">大きな目標</b>です。<ol><li>BOSSの名前（目標）を入れる</li><li>モンスターを選ぶ</li><li>つながるクエストを選ぶ</li><li>期限を決める</li><li>一番下の緑のボタンで保存</li></ol></div>
       <div id="boss-form"></div>
       <button class="add-boss-btn" onclick="addBoss()">＋ 新しいBOSSを追加</button>
       <button class="rbtn ok" style="margin-top:8px;display:block;width:100%" onclick="saveBosses()">▶ BOSSを保存して討伐状況へ</button>
@@ -1833,6 +1832,7 @@ function switchBossTab(tab){
   if(tab==='set'){
     setArea.style.display='block';viewArea.style.display='none';
     tabSet.classList.add('active');tabView.classList.remove('active');
+    if(!(D.bosses||[]).some(function(b){return b.name;})){D.bosses=[];renderBossForm();openBossWizard();return;}
     renderBossForm();
   }else{
     setArea.style.display='none';viewArea.style.display='block';
@@ -1864,23 +1864,20 @@ function updateDaysLeft(idx,val){
   el.style.color=days<=7?'#e04040':days<=30?'#f0c040':'#80d040';
 }
 function renderBossForm(){
-  if(!D.bosses.length){D.bosses.push({id:'b'+Date.now(),name:'',icon:'⭐',linked:[],deadline:'',targetCount:100,bossType:'slime'});showMsg('まずはBOSSの設定をしよう！名前（目標）から入れてね');}
   var h='';
   D.bosses.forEach(function(b,i){
     h+='<div style="border:1px solid #4a3a6a;padding:8px;margin-bottom:8px;background:#0a0518">';
-    h+='<div style="display:flex;gap:5px;align-items:center;margin-bottom:6px;flex-wrap:wrap"><input class="ri" id="bi-'+i+'" value="'+(b.icon||'⭐')+'" style="width:34px;text-align:center" placeholder="🎯"><input class="ri" id="bn-'+i+'" value="'+b.name+'" style="flex:1;min-width:100px" placeholder="BOSS名"><button onclick="removeBoss('+i+')" style="background:#2a0a0a;border:1px solid #802020;color:#d04040;font-family:DotGothic16,monospace;font-size:14px;cursor:pointer;padding:3px 6px">削除</button></div>';
-    h+='<div class="boss-hint" style="margin-top:-2px">↑ 左はアイコン、右はBOSSの名前＝あなたの<b>大きな目標</b>（例：本を出版する／資格に合格する）</div>';
-    h+='<div style="margin-bottom:6px"><div style="font-size:14px;color:#a0c8f0;margin-bottom:4px">👾 BOSSキャラを選ぶ</div><div class="boss-hint">倒したいモンスターを1体タップ。討伐状況の画面に出てきます</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">';
+    h+='<div style="display:flex;gap:5px;align-items:center;margin-bottom:6px;flex-wrap:wrap"><input class="ri" id="bi-'+i+'" value="'+(b.icon||'⭐')+'" style="width:34px;text-align:center" placeholder="🎯"><input class="ri" id="bn-'+i+'" value="'+escH(b.name||'')+'" style="flex:1;min-width:100px" placeholder="例：本を出版する"><button onclick="removeBoss('+i+')" style="background:#2a0a0a;border:1px solid #802020;color:#d04040;font-family:DotGothic16,monospace;font-size:14px;cursor:pointer;padding:3px 6px">削除</button></div>';
+    h+='<div style="margin-bottom:6px"><div style="font-size:14px;color:#a0c8f0;margin-bottom:4px">👾 BOSSキャラを選ぶ</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">';
     BOSS_TYPES.forEach(function(bt){
       h+='<div onclick="selectBossType('+i+',\''+bt.id+'\')" style="cursor:pointer;border:2px solid '+(b.bossType===bt.id?'#f0c040':'#2a1a4a')+';background:'+(b.bossType===bt.id?'#1a1200':'#0a0518')+';padding:3px;text-align:center;border-radius:2px"><img src="'+BOSS_IMAGES[bt.id]+'" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><div style="font-size:12px;line-height:1.3;color:'+(b.bossType===bt.id?'#f0c040':'#9a8a7a')+';margin-top:2px">'+bt.name+'</div></div>';
     });
     h+='</div></div>';
-    h+='<div style="margin-bottom:6px"><div style="font-size:14px;color:#a0c8f0;margin-bottom:4px">⚔ 紐付けクエスト</div><div class="boss-hint">この目標につながる習慣を選ぼう（いくつでもOK）。選んだクエストを<b>1日こなすごとにBOSSへ1ダメージ</b>が入ります</div><div class="chk-row">';
+    h+='<div style="margin-bottom:6px"><div style="font-size:14px;color:#a0c8f0;margin-bottom:4px">⚔ 紐付けクエスト</div><div class="chk-row">';
     QUESTS.filter(function(q){return q.special!=='nodrink';}).forEach(function(q){
       h+='<div class="chk-item'+(b.linked.includes(q.id)?' on':'')+'" onclick="toggleLink('+i+',\''+q.id+'\')" ><div class="chk-box'+(b.linked.includes(q.id)?' on':'')+'" id="chk-'+i+'-'+q.id+'">'+(b.linked.includes(q.id)?'✓':'')+'</div>'+q.icon+q.name+'</div>';
     });
     h+='</div></div>';
-    h+='<div class="boss-hint" style="margin-top:4px">📅 いつまでに倒すかを決めよう。期限を選ぶと、目標回数が「期限までの日数」で自動で入ります</div>';
     h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px"><div style="font-size:14px;color:#a0c8f0;width:60px">達成期限</div><input class="ri" type="date" id="bd-'+i+'" value="'+(b.deadline||'')+'" style="width:130px" oninput="updateDaysLeft('+i+',this.value)"><span id="days-left-'+i+'" style="font-size:14px;color:#f0c040">'+(b.deadline?'あと'+Math.max(0,getDaysLeft(b.deadline))+'日':'')+'</span></div>';
     h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><div style="font-size:14px;color:#a0c8f0;width:60px">目標回数</div><button class="tc-btn" onclick="stepTarget('+i+',-1)">▼</button><input class="ri" type="number" inputmode="numeric" id="bt-'+i+'" value="'+(b.targetCount||100)+'" style="width:60px;text-align:center" onchange="clampTarget('+i+')"><button class="tc-btn" onclick="stepTarget('+i+',1)">▲</button><span id="tc-cap-'+i+'" style="font-size:14px;color:#6a5a4a">'+capLabel(b.deadline)+'</span></div></div>';
   });
@@ -1919,6 +1916,58 @@ function addBoss(){
   D.bosses.push({id:'b'+Date.now(),name:'',icon:'⭐',linked:[],deadline:'',targetCount:100,bossType:'slime'});
   sv();renderBossForm();showMsg('新しいBOSSを追加！名前・紐付けクエスト・期限を設定しよう。');
 }
+// ===== BOSS設定：会話で1つずつ =====
+function openBossWizard(){window._bw={step:0,name:'',type:'',linked:[],deadline:'',target:0};renderBossWizard();}
+function bwClose(){var o=document.getElementById('bw-ov');if(o)o.remove();}
+function renderBossWizard(){
+  var w=window._bw,st=w.step,TOTAL=4,body='',msg='',canNext=true;
+  if(st===0){msg='倒したいBOSS（あなたの大きな目標）の名前を教えてくれ！';
+    body='<input class="ri" id="bw-name" value="'+escH(w.name)+'" placeholder="例：本を出版する" style="width:100%;box-sizing:border-box;font-size:20px;padding:12px;text-align:left" oninput="window._bw.name=this.value;document.getElementById(\'bw-next\').disabled=!this.value.trim()">';
+    canNext=!!w.name.trim();}
+  else if(st===1){msg='「'+escH(w.name)+'」を守るモンスターはどいつだ？1体えらんでくれ！';
+    body='<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">'+BOSS_TYPES.map(function(bt){var on=w.type===bt.id;
+      return '<div onclick="window._bw.type=\''+bt.id+'\';renderBossWizard()" style="cursor:pointer;border:2px solid '+(on?'#f0c040':'#444')+';border-radius:6px;padding:3px;text-align:center;background:'+(on?'#2a2000':'#000')+'"><img src="'+BOSS_IMAGES[bt.id]+'" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><div style="font-size:12px;line-height:1.3;color:'+(on?'#f0c040':'#ccc')+'">'+bt.name+'</div></div>';}).join('')+'</div>';
+    canNext=!!w.type;}
+  else if(st===2){msg='BOSSにダメージを与える習慣をえらぼう！（いくつでもOK）<br><span style="font-size:15px;color:#ccc">1日こなすごとに1ダメージだ</span>';
+    body='<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">'+QUESTS.filter(function(q){return q.special!=='nodrink';}).map(function(q){var on=w.linked.indexOf(q.id)>=0;
+      return '<div onclick="bwToggle(\''+q.id+'\')" style="cursor:pointer;border:2px solid '+(on?'#80d040':'#444')+';border-radius:6px;padding:10px 4px;text-align:center;font-size:16px;background:'+(on?'#0d1a00':'#000')+';color:'+(on?'#c0ff80':'#fff')+'">'+(on?'✓ ':'')+q.icon+q.name+'</div>';}).join('')+'</div>';
+    canNext=w.linked.length>0;}
+  else if(st===3){msg='いつまでに倒す？期限を決めてくれ！';
+    var cap=w.deadline?targetCap(w.deadline):null;
+    body='<input class="ri" type="date" id="bw-date" value="'+w.deadline+'" style="width:100%;box-sizing:border-box;font-size:20px;padding:10px" oninput="bwDate(this.value)">'
+      +(cap?'<div style="margin-top:12px;font-size:17px;color:#fff;text-align:center">あと<b style="color:#f0c040;font-weight:normal">'+cap+'日</b>　目標回数　'
+        +'<button class="tc-btn" style="width:40px;height:40px;font-size:16px" onclick="bwStep(-1)">▼</button> <b id="bw-tgt" style="color:#f0c040;font-weight:normal;font-size:22px">'+w.target+'</b> 回 '
+        +'<button class="tc-btn" style="width:40px;height:40px;font-size:16px" onclick="bwStep(1)">▲</button>'
+        +'<div style="font-size:14px;color:#ccc;margin-top:6px">（上限は期限までの日数。▼で減らせます）</div></div>':'');
+    canNext=!!cap;}
+  else{var bt=BOSS_TYPES.find(function(x){return x.id===w.type;})||{};
+    msg='BOSS「'+escH(w.name)+'」があらわれた！<br>'+w.target+'回の攻撃で討伐だ！';
+    body='<div style="text-align:center"><img src="'+BOSS_IMAGES[w.type]+'" style="width:60%;max-width:220px;aspect-ratio:1;object-fit:cover;border:2px solid #f0c040;border-radius:8px"></div>'
+      +'<div style="font-size:15px;color:#ccc;text-align:center;margin-top:8px">'+w.linked.map(function(id){var q=QUESTS.find(function(x){return x.id===id;});return q?q.icon+q.name:'';}).join('　')+'</div>';}
+  var isLast=st>=TOTAL;
+  var h='<div class="overlay" id="bw-ov"><div class="popup dq">'
+    +'<div class="pop-ttl">⚔ BOSSを決めよう</div>'
+    +(isLast?'':'<div class="dq-step" style="text-align:center;margin-bottom:6px">'+(st+1)+' / '+TOTAL+'</div>')
+    +'<div class="dq-msg"><span id="bw-msg"></span><span class="dq-cur">▼</span></div>'
+    +body
+    +'<div style="display:flex;gap:8px;margin-top:14px">'
+    +(st>0?'<button class="rbtn" style="flex:1;font-size:16px;padding:12px" onclick="window._bw.step--;renderBossWizard()">◀ 戻る</button>':'<button class="rbtn cl" style="flex:1;font-size:16px;padding:12px;margin:0" onclick="bwClose()">あとで</button>')
+    +'<button class="rb-done" id="bw-next" style="flex:2;margin:0;font-size:17px" '+(canNext?'':'disabled')+' onclick="'+(isLast?'bwFinish()':'bwNext()')+'">'+(isLast?'⚔ たたかう！':'次へ ▶')+'</button>'
+    +'</div></div></div>';
+  bwClose();document.getElementById('overlay-area').insertAdjacentHTML('beforeend',h);
+  var me=document.getElementById('bw-msg');if(me){me.style.whiteSpace='pre-line';var plain=msg.replace(/<br>/g,'\n').replace(/<[^>]+>/g,'');
+    if(w._typed!==st){w._typed=st;dqType(me,plain);}else me.textContent=plain;}
+  if(st===0)setTimeout(function(){var n=document.getElementById('bw-name');if(n)n.focus();},400);
+}
+function bwNext(){var w=window._bw;if(w.step===0&&!w.name.trim())return;w.step++;renderBossWizard();}
+function bwToggle(id){var l=window._bw.linked,i=l.indexOf(id);if(i>=0)l.splice(i,1);else l.push(id);renderBossWizard();}
+function bwDate(v){var w=window._bw;w.deadline=v;var c=targetCap(v);w.target=c||0;renderBossWizard();}
+function bwStep(d){var w=window._bw,c=targetCap(w.deadline)||1;w.target=Math.max(1,Math.min(c,(w.target||c)+d));var e=document.getElementById('bw-tgt');if(e)e.textContent=w.target;}
+function bwFinish(){var w=window._bw;
+  D.bosses=(D.bosses||[]).filter(function(b){return b.name;});
+  D.bosses.push({id:'b'+Date.now(),name:w.name.trim(),icon:'⚔',linked:w.linked.slice(),deadline:w.deadline,targetCount:w.target||targetCap(w.deadline)||100,bossType:w.type||'slime'});
+  sv();bwClose();switchBossTab('view');showMsg('BOSS「'+w.name.trim()+'」との戦いが始まった！');
+}
 function saveBosses(){
   D.bosses=D.bosses.map((b,i)=>({
     ...b,
@@ -1934,7 +1983,7 @@ function renderBossStatus(){
   const el=document.getElementById('boss-status');
   const active=D.bosses.filter(b=>b.name);
   var vg=document.getElementById('boss-view-guide');if(vg)vg.style.display=active.length?'block':'none';
-  if(!active.length){el.innerHTML='<div class="boss-guide" style="text-align:center"><div style="font-size:40px">👾</div><div class="bg-ttl" style="font-size:20px">まずはBOSSの設定をしよう！</div>まだ倒すBOSS（大きな目標）が決まっていません。<br>設定すると、ここに討伐状況が出ます。<button class="rb-done" style="font-size:17px;margin-top:12px" onclick="switchBossTab(\'set\')">⚙ BOSSを設定する</button></div>';return;}
+  if(!active.length){el.innerHTML='<div class="boss-guide" style="text-align:center"><div style="font-size:40px">👾</div><div class="bg-ttl" style="font-size:20px">まずはBOSSの設定をしよう！</div>まだ倒すBOSS（大きな目標）が決まっていません。<br>設定すると、ここに討伐状況が出ます。<button class="rb-done" style="font-size:17px;margin-top:12px" onclick="openBossWizard()">⚔ BOSSを決める</button></div>';return;}
   el.innerHTML=active.map(b=>{
     const tot=b.linked?b.linked.reduce((s,id)=>s+getQuestTotalCount(id),0):0;
     const pct=Math.min(100,Math.round(tot/(b.targetCount||100)*100));
