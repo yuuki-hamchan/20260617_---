@@ -164,6 +164,12 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
 .glbl{font-size:16px;color:#a0c8f0;width:84px;flex:none;font-weight:bold;white-space:nowrap}
 @keyframes gpulse{0%,100%{box-shadow:0 0 0 0 rgba(128,208,64,.7)}50%{box-shadow:0 0 0 8px rgba(128,208,64,0)}}
 .goal-pulse{animation:gpulse .8s 3}
+.goal-guide{font-size:15px;color:#f0e6c8;background:#1a1a00;border:1px dashed #f0c040;padding:8px;margin:4px 0 10px;line-height:1.5}
+.goal-guide b{color:#80d040;font-weight:normal}
+.goal-save{width:100%;font-size:17px;padding:13px;margin-top:6px}
+#gk-bar{position:fixed;left:0;right:0;display:none;gap:6px;padding:8px;background:#000;border-top:3px solid #fff;z-index:300}
+#gk-bar button{flex:1;font-family:'DotGothic16',monospace;font-size:17px;padding:12px 4px;background:#000;color:#fff;border:2px solid #fff;border-radius:8px}
+#gk-bar button.ok{background:#1a3a00;border-color:#80d040;color:#c0ff80;flex:1.3}
 #wk-inp .gunit2,#mo-inp .gunit2{font-size:16px;color:#f0e6c8;margin-left:-4px}
 #wk-inp .ri,#mo-inp .ri{width:66px;flex:none;font-size:20px;padding:6px 4px}
 #wk-inp .gcur,#mo-inp .gcur{margin-left:auto;white-space:nowrap;font-size:15px}
@@ -378,13 +384,15 @@ body{background:#0a0518;display:flex;justify-content:center;padding:12px;min-hei
 <div id="s-goals" class="scr">
   <div class="panel">
     <div class="ptl" id="wk-goal-ttl">▼ 今週の目標</div>
+    <div class="goal-guide">✏️ 数字を入れたら、最後に下の緑の<b>「決定」ボタン</b>を押してください</div>
     <div id="wk-inp"></div>
-    <button class="rbtn ok" id="wk-goal-btn" onclick="saveWk()">▶ 今週の目標を決定</button>
+    <button class="rbtn ok goal-save" id="wk-goal-btn" onclick="saveWk()">▶ 今週の目標を決定</button>
   </div>
   <div class="panel">
     <div class="ptl">▼ 今月の目標</div>
+    <div class="goal-guide">✏️ 数字を入れたら、最後に下の緑の<b>「決定」ボタン</b>を押してください</div>
     <div id="mo-inp"></div>
-    <button class="rbtn ok" onclick="saveMo()">▶ 今月の目標を決定</button>
+    <button class="rbtn ok goal-save" onclick="saveMo()">▶ 今月の目標を決定</button>
   </div>
 </div>
 
@@ -1750,9 +1758,33 @@ function renderGoalInputs(){
   document.getElementById('mo-inp').innerHTML=mh;
 }
 // 確定（✓／改行）キーで次の欄へ。最後の欄なら「決定」ボタンへ
+function _goalList(el){var box=el&&el.closest('#wk-inp,#mo-inp');return box?[].slice.call(box.querySelectorAll('input.ri')):[];}
+function goalMove(dir){
+  var el=window._gkEl;if(!el)return;var list=_goalList(el),i=list.indexOf(el),j=i+dir;
+  if(j>=0&&j<list.length){var nx=list[j];nx.focus();nx.select&&nx.select();nx.scrollIntoView({block:'center',behavior:'smooth'});}
+  else if(dir>0){goalToSave(el);}
+}
+function goalToSave(el){
+  var box=el.closest('#wk-inp,#mo-inp');el.blur();hideGkBar();
+  var btn=box&&box.parentNode.querySelector('.goal-save');
+  if(btn){btn.scrollIntoView({block:'center',behavior:'smooth'});btn.classList.add('goal-pulse');setTimeout(function(){btn.classList.remove('goal-pulse');},2400);
+    showMsg('入力おつかれさま！緑の「決定」ボタンを押して保存しよう');}
+}
+function placeGkBar(){var bar=document.getElementById('gk-bar');if(!bar||bar.style.display==='none')return;
+  var vv=window.visualViewport;var top=vv?(vv.offsetTop+vv.height-bar.offsetHeight):(window.innerHeight-bar.offsetHeight);bar.style.top=top+'px';}
+function showGkBar(el){window._gkEl=el;var bar=document.getElementById('gk-bar');
+  if(!bar){bar=document.createElement('div');bar.id='gk-bar';
+    bar.innerHTML='<button onpointerdown="event.preventDefault()" onclick="goalMove(-1)">▲ 上へ</button><button onpointerdown="event.preventDefault()" onclick="goalMove(1)">▼ 下へ</button><button class="ok" onpointerdown="event.preventDefault()" onclick="goalMove(1)">決定 ▼</button>';
+    document.body.appendChild(bar);
+    if(window.visualViewport){visualViewport.addEventListener('resize',placeGkBar);visualViewport.addEventListener('scroll',placeGkBar);}
+    window.addEventListener('scroll',placeGkBar);}
+  bar.style.display='flex';placeGkBar();setTimeout(placeGkBar,300);}
+function hideGkBar(){var bar=document.getElementById('gk-bar');if(bar)bar.style.display='none';window._gkEl=null;}
+document.addEventListener('focusin',function(e){if(e.target.matches&&e.target.matches('#wk-inp input.ri,#mo-inp input.ri'))showGkBar(e.target);});
+document.addEventListener('focusout',function(e){if(e.target.matches&&e.target.matches('#wk-inp input.ri,#mo-inp input.ri'))setTimeout(function(){var a=document.activeElement;if(!(a&&a.matches&&a.matches('#wk-inp input.ri,#mo-inp input.ri')))hideGkBar();},150);});
 function goalNext(e,el){
   if(e.key!=='Enter')return;
-  e.preventDefault();
+  e.preventDefault();window._gkEl=el;goalMove(1);return;
   var box=el.closest('#wk-inp,#mo-inp');if(!box)return;
   var list=[].slice.call(box.querySelectorAll('input.ri')),i=list.indexOf(el);
   if(i>=0&&i<list.length-1){var nx=list[i+1];nx.focus();nx.select&&nx.select();nx.scrollIntoView({block:'center',behavior:'smooth'});}
